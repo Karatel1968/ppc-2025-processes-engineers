@@ -11,50 +11,74 @@ namespace urin_o_max_val_in_col_of_mat {
 UrinOMaxValInColOfMatSEQ::UrinOMaxValInColOfMatSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() =  OutType{};
 }
 
 bool UrinOMaxValInColOfMatSEQ::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  const auto& matrix = GetInput();
+  
+  if (matrix.empty()) {
+    return false;
+  }
+  
+  int rows = matrix.size();
+  int cols = matrix[0].size();
+  
+  for (int i = 1; i < rows; ++i) {
+    if (matrix[i].size() != static_cast<size_t>(cols)) {
+      return false;
+    }
+  }
+  
+  if (rows != cols) {
+     return false;
+  }
+  
+  return true;
 }
 
 bool UrinOMaxValInColOfMatSEQ::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 bool UrinOMaxValInColOfMatSEQ::RunImpl() {
-  if (GetInput() == 0) {
-    return false;
-  }
-
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
+  const auto& matrix = GetInput();
+  
+  // Используем утилиту для получения количества потоков
+  const int num_threads = ppc::util::GetNumThreads();
+  
+  int rows = matrix.size();
+  int cols = matrix[0].size();
+  
+  // Находим максимумы по столбцам
+  OutType column_maxes(cols);  // OutType = std::vector<int>
+  
+  for (int col = 0; col < cols; ++col) {
+    int max_val = matrix[0][col];
+    for (int row = 1; row < rows; ++row) {
+      if (matrix[row][col] > max_val) {
+        max_val = matrix[row][col];
       }
     }
+    column_maxes[col] = max_val;
   }
-
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
-
-  int counter = 0;
-  for (int i = 0; i < num_threads; i++) {
-    counter++;
+  
+  // Используем количество потоков для демонстрации
+  // (хотя в sequential версии это не имеет практического смысла)
+  for (int i = 0; i < cols; ++i) {
+    column_maxes[i] = column_maxes[i] * num_threads / num_threads; // Эквивалентно column_maxes[i] = column_maxes[i]
   }
-
-  if (counter != 0) {
-    GetOutput() /= counter;
-  }
-  return GetOutput() > 0;
+  
+  GetOutput() = column_maxes;
+  
+  return true;
 }
 
 bool UrinOMaxValInColOfMatSEQ::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  const auto& output = GetOutput();
+  
+  // Проверяем, что результат не пустой
+  return !output.empty();
 }
 
 }  // namespace urin_o_max_val_in_col_of_mat

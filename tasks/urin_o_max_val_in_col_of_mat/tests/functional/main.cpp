@@ -28,30 +28,46 @@ class UrinOMaxValInColOfMatFuncTests : public ppc::util::BaseRunFuncTests<InType
 
  protected:
   void SetUp() override {
-    int width = -1;
-    int height = -1;
-    int channels = -1;
-    std::vector<uint8_t> img;
-    // Read image
-    {
-      std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_urin_o_max_val_in_col_of_mat, "pic.jpg");
-      auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, 0);
-      if (data == nullptr) {
-        throw std::runtime_error("Failed to load image: " + std::string(stbi_failure_reason()));
-      }
-      img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
-      stbi_image_free(data);
-      if (std::cmp_not_equal(width, height)) {
-        throw std::runtime_error("width != height: ");
-      }
-    }
-
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    input_data_ = width - height + std::min(std::accumulate(img.begin(), img.end(), 0), channels);
+    int matrix_size = std::get<0>(params);
+    
+    input_data_.clear();
+    expected_output_.clear();
+    
+    // Создаем тестовую матрицу и вычисляем ожидаемые максимумы по столбцам
+    for (int i = 0; i < matrix_size; ++i) {
+      std::vector<int> row;
+      for (int j = 0; j < matrix_size; ++j) {
+        // Заполняем матрицу так, чтобы максимумы по столбцам были предсказуемы
+        // В столбце j максимальное значение будет: (matrix_size - 1) * matrix_size + j
+        row.push_back(i * matrix_size + j);
+      }
+      input_data_.push_back(row);
+    }
+    
+    // Вычисляем ожидаемые максимумы по столбцам
+    for (int j = 0; j < matrix_size; ++j) {
+      int max_val = input_data_[0][j];
+      for (int i = 1; i < matrix_size; ++i) {
+        if (input_data_[i][j] > max_val) {
+          max_val = input_data_[i][j];
+        }
+      }
+      expected_output_.push_back(max_val);
+    }
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (input_data_ == output_data);
+    if (output_data.size() != expected_output_.size()) {
+      return false;
+    }
+    
+    for (size_t i = 0; i < expected_output_.size(); ++i) {
+      if (output_data[i] != expected_output_[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   InType GetTestInputData() final {
@@ -59,16 +75,21 @@ class UrinOMaxValInColOfMatFuncTests : public ppc::util::BaseRunFuncTests<InType
   }
 
  private:
-  InType input_data_ = 0;
+  InType input_data_;
+  OutType expected_output_;
 };
 
 namespace {
 
-TEST_P(UrinOMaxValInColOfMatFuncTests, MatmulFromPic) {
+TEST_P(UrinOMaxValInColOfMatFuncTests, MaxValInColTest) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(3, "3"), std::make_tuple(5, "5"), std::make_tuple(7, "7")};
+const std::array<TestType, 3> kTestParam = {
+    std::make_tuple(2, "2x2_matrix"),
+    std::make_tuple(3, "3x3_matrix"), 
+    std::make_tuple(4, "4x4_matrix")
+};
 
 const auto kTestTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<UrinOMaxValInColOfMatMPI, InType>(kTestParam, PPC_SETTINGS_urin_o_max_val_in_col_of_mat),
@@ -78,7 +99,7 @@ const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
 const auto kPerfTestName = UrinOMaxValInColOfMatFuncTests::PrintFuncTestName<UrinOMaxValInColOfMatFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, UrinOMaxValInColOfMatFuncTests, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(MaxValInColTests, UrinOMaxValInColOfMatFuncTests, kGtestValues, kPerfTestName);
 
 }  // namespace
 

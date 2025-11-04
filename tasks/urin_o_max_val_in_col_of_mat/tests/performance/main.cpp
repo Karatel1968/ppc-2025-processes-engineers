@@ -8,15 +8,32 @@
 namespace urin_o_max_val_in_col_of_mat {
 
 class UrinOMaxValInColOfMatPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kCount_ = 100;
+  const int kMatrixSize_ = 100; 
   InType input_data_{};
 
   void SetUp() override {
-    input_data_ = kCount_;
+    input_data_.resize(kMatrixSize_);
+    for (int i = 0; i < kMatrixSize_; ++i) {
+      input_data_[i].resize(kMatrixSize_);
+      for (int j = 0; j < kMatrixSize_; ++j) {
+        input_data_[i][j] = i + j;
+      }
+    }
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return input_data_ == output_data;
+    if (output_data.size() != static_cast<size_t>(kMatrixSize_)) {
+      return false;
+    }
+    
+    for (int j = 0; j < kMatrixSize_; ++j) {
+      int expected_max = (kMatrixSize_ - 1) + j;
+      if (output_data[j] != expected_max) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   InType GetTestInputData() final {
