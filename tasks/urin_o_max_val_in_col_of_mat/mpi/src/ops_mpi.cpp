@@ -50,7 +50,7 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
   int cols = matrix[0].size();
   
   // Используем утилиту для получения количества потоков
-  const int num_threads = ppc::util::GetNumThreads();
+  //const int num_threads = ppc::util::GetNumThreads();
   
   // Распределяем столбцы матрицы между процессами
   int base_cols_per_process = cols / size;
@@ -90,31 +90,48 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
     displs[i] = displs[i-1] + recv_counts[i-1];
   }
   
-  OutType all_column_maxes(cols);  // OutType = std::vector<int>
+  // На процессе 0 создаем вектор для всех максимумов
+  OutType all_column_maxes;
+  if (rank == 0) {
+    all_column_maxes.resize(cols);
+  }
+  
   MPI_Gatherv(local_maxes.data(), local_cols_count, MPI_INT,
               all_column_maxes.data(), recv_counts.data(), displs.data(), MPI_INT,
               0, MPI_COMM_WORLD);
   
-  int dummy;
-  // На процессе 0 обрабатываем финальный результат
-  if (rank == 0) {
-    // Используем количество потоков для демонстрации
-    for (int i = 0; i < cols; ++i) {
-      all_column_maxes[i] = all_column_maxes[i] * num_threads / num_threads;
-    }
-    
+  // На процессе 0 устанавливаем результат
+  /*if (rank == 0) {
     GetOutput() = all_column_maxes;
-  } else {
-    // На других процессах тоже используем утилиту для демонстрации
-    dummy = num_threads;
   }
-  
-  MPI_Barrier(MPI_COMM_WORLD);
+  // Синхронизируем все процессы
+  MPI_Barrier(MPI_COMM_WORLD);*/
+  int result_size = 0;
+if (rank == 0) {
+    result_size = static_cast<int>(all_column_maxes.size());
+}
+MPI_Bcast(&result_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+if (rank != 0) {
+    all_column_maxes.resize(result_size);
+}
+MPI_Bcast(all_column_maxes.data(), result_size, MPI_INT, 0, MPI_COMM_WORLD);
+
+// Установить результат на всех процессах
+GetOutput() = all_column_maxes;
+  // Все процессы должны вернуть true для успешного выполнения
   return true;
 }
 
+
+
 bool UrinOMaxValInColOfMatMPI::PostProcessingImpl() {
-  return !GetOutput().empty();
+  const auto& output = GetOutput();
+  
+  // Простая проверка - результат не должен быть пустым
+  return !output.empty();
 }
 
+
 }  // namespace urin_o_max_val_in_col_of_mat
+//
