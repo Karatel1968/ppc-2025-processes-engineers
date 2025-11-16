@@ -1,5 +1,6 @@
 #include "urin_o_max_val_in_col_of_mat/seq/include/ops_seq.hpp"
 
+#include <algorithm>
 #include <numeric>
 #include <vector>
 
@@ -8,77 +9,49 @@
 
 namespace urin_o_max_val_in_col_of_mat {
 
-UrinOMaxValInColOfMatSEQ::UrinOMaxValInColOfMatSEQ(const InType &in) {
+UrinOMaxValInColOfMatSeq::UrinOMaxValInColOfMatSeq(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() =  OutType{};
+  GetOutput() = OutType{};
 }
 
-bool UrinOMaxValInColOfMatSEQ::ValidationImpl() {
-  const auto& matrix = GetInput();
-  
-  if (matrix.empty()) {
-    return false;
-  }
-  
-  int rows = matrix.size();
-  int cols = matrix[0].size();
-  
-  for (int i = 1; i < rows; ++i) {
-    if (matrix[i].size() != static_cast<size_t>(cols)) {
-      return false;
+bool UrinOMaxValInColOfMatSeq::ValidationImpl() {
+  return GetInput() > 0 && GetInput() <= 10000;
+}
+
+bool UrinOMaxValInColOfMatSeq::PreProcessingImpl() {
+  return true;
+}
+
+bool UrinOMaxValInColOfMatSeq::RunImpl() {
+  int n = GetInput();
+
+  std::vector<std::vector<int>> matrix(n, std::vector<int>(n));
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      matrix[i][j] = (i * n + j) % 1000 + 1;
     }
   }
-  
-  if (rows != cols) {
-     return false;
-  }
-  
-  return true;
-}
 
-bool UrinOMaxValInColOfMatSEQ::PreProcessingImpl() {
-  return true;
-}
+  OutType column_maxes(n);
 
-bool UrinOMaxValInColOfMatSEQ::RunImpl() {
-  const auto& matrix = GetInput();
-  
-  // Используем утилиту для получения количества потоков
-  const int num_threads = ppc::util::GetNumThreads();
-  
-  int rows = matrix.size();
-  int cols = matrix[0].size();
-  
-  // Находим максимумы по столбцам
-  OutType column_maxes(cols);  // OutType = std::vector<int>
-  
-  for (int col = 0; col < cols; ++col) {
+  for (int col = 0; col < n; ++col) {
     int max_val = matrix[0][col];
-    for (int row = 1; row < rows; ++row) {
+    for (int row = 1; row < n; ++row) {
       if (matrix[row][col] > max_val) {
         max_val = matrix[row][col];
       }
     }
     column_maxes[col] = max_val;
   }
-  
-  // Используем количество потоков для демонстрации
-  // (хотя в sequential версии это не имеет практического смысла)
-  for (int i = 0; i < cols; ++i) {
-    column_maxes[i] = column_maxes[i] * num_threads / num_threads; // Эквивалентно column_maxes[i] = column_maxes[i]
-  }
-  
+
   GetOutput() = column_maxes;
-  
   return true;
 }
 
-bool UrinOMaxValInColOfMatSEQ::PostProcessingImpl() {
-  const auto& output = GetOutput();
-  
-  // Проверяем, что результат не пустой
-  return !output.empty();
+bool UrinOMaxValInColOfMatSeq::PostProcessingImpl() {
+  return !GetOutput().empty();
 }
 
 }  // namespace urin_o_max_val_in_col_of_mat

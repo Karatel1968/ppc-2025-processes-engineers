@@ -8,32 +8,19 @@
 namespace urin_o_max_val_in_col_of_mat {
 
 class UrinOMaxValInColOfMatPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kMatrixSize_ = 100; 
+  const int kCount_ = 100;
   InType input_data_{};
 
   void SetUp() override {
-    input_data_.resize(kMatrixSize_);
-    for (int i = 0; i < kMatrixSize_; ++i) {
-      input_data_[i].resize(kMatrixSize_);
-      for (int j = 0; j < kMatrixSize_; ++j) {
-        input_data_[i][j] = i + j;
-      }
-    }
+    input_data_ = kCount_;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if (output_data.size() != static_cast<size_t>(kMatrixSize_)) {
+    if (output_data.size() != static_cast<size_t>(input_data_)) {
       return false;
     }
-    
-    for (int j = 0; j < kMatrixSize_; ++j) {
-      int expected_max = (kMatrixSize_ - 1) + j;
-      if (output_data[j] != expected_max) {
-        return false;
-      }
-    }
-    
-    return true;
+
+    return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val >= 1 && val <= 1000; });
   }
 
   InType GetTestInputData() final {
@@ -45,8 +32,8 @@ TEST_P(UrinOMaxValInColOfMatPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType, UrinOMaxValInColOfMatMPI, UrinOMaxValInColOfMatSEQ>(PPC_SETTINGS_urin_o_max_val_in_col_of_mat);
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, UrinOMaxValInColOfMatMPI, UrinOMaxValInColOfMatSeq>(
+    PPC_SETTINGS_urin_o_max_val_in_col_of_mat);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 

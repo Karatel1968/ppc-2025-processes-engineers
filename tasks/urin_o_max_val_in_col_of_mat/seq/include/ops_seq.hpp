@@ -1,16 +1,16 @@
 #pragma once
 
-#include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "task/include/task.hpp"
+#include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 
 namespace urin_o_max_val_in_col_of_mat {
 
-class UrinOMaxValInColOfMatSEQ : public BaseTask {
+class UrinOMaxValInColOfMatSeq : public BaseTask {
  public:
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kSEQ;
   }
-  explicit UrinOMaxValInColOfMatSEQ(const InType &in);
+  explicit UrinOMaxValInColOfMatSeq(const InType &in);
 
  private:
   bool ValidationImpl() override;

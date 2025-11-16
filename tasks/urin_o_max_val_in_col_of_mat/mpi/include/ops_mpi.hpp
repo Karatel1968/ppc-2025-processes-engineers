@@ -1,7 +1,7 @@
 #pragma once
 
-#include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "task/include/task.hpp"
+#include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 
 namespace urin_o_max_val_in_col_of_mat {
 
