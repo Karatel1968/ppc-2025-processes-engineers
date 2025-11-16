@@ -67,6 +67,6 @@ const auto kPerfTestName = UrinOMaxValInColOfMatFuncTests::PrintFuncTestName<Uri
 
 INSTANTIATE_TEST_SUITE_P(MaxValInColTests, UrinOMaxValInColOfMatFuncTests, kGtestValues, kPerfTestName);
 
-}  // namespace
+}  // rnamespace
 
 }  // namespace urin_o_max_val_in_col_of_mat
