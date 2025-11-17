@@ -54,15 +54,9 @@ TEST_P(UrinOMaxValInColOfMatFuncTests, MaxValInColTest) {
 }
 
 const std::array<TestType, 10> kTestParam = {
-    std::make_tuple(1, "tiny"), 
-    std::make_tuple(2, "very_small"), 
-    std::make_tuple(3, "small"),
-    std::make_tuple(4, "compact"), 
-    std::make_tuple(5, "modest"),
-    std::make_tuple(6, "medium"),
-    std::make_tuple(7, "moderate"), 
-    std::make_tuple(8, "standard"),   
-    std::make_tuple(9, "large"),
+    std::make_tuple(1, "tiny"),      std::make_tuple(2, "very_small"), std::make_tuple(3, "small"),
+    std::make_tuple(4, "compact"),   std::make_tuple(5, "modest"),     std::make_tuple(6, "medium"),
+    std::make_tuple(7, "moderate"),  std::make_tuple(8, "standard"),   std::make_tuple(9, "large"),
     std::make_tuple(10, "generous"),
 };
 
