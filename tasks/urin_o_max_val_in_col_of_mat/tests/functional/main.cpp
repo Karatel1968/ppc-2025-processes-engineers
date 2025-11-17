@@ -36,7 +36,6 @@ class UrinOMaxValInColOfMatFuncTests : public ppc::util::BaseRunFuncTests<InType
     if (output_data.size() != static_cast<size_t>(input_data_)) {
       return false;
     }
-
     return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val > 0; });
   }
 
@@ -54,8 +53,18 @@ TEST_P(UrinOMaxValInColOfMatFuncTests, MaxValInColTest) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(10, "10x10"), std::make_tuple(50, "50x50"),
-                                            std::make_tuple(100, "100x100")};
+const std::array<TestType, 10> kTestParam = {
+    std::make_tuple(1, "tiny"), 
+    std::make_tuple(2, "very_small"), 
+    std::make_tuple(3, "small"),
+    std::make_tuple(4, "compact"), 
+    std::make_tuple(5, "modest"),
+    std::make_tuple(6, "medium"),
+    std::make_tuple(7, "moderate"), 
+    std::make_tuple(8, "standard"),   
+    std::make_tuple(9, "large"),
+    std::make_tuple(10, "generous"),
+};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<UrinOMaxValInColOfMatMPI, InType>(kTestParam, PPC_SETTINGS_urin_o_max_val_in_col_of_mat),
@@ -65,8 +74,7 @@ const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
 const auto kPerfTestName = UrinOMaxValInColOfMatFuncTests::PrintFuncTestName<UrinOMaxValInColOfMatFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(MaxValInColTests, UrinOMaxValInColOfMatFuncTests, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(MatrixTests, UrinOMaxValInColOfMatFuncTests, kGtestValues, kPerfTestName);
 
-}  // кnamespace
-
+}  // namespace
 }  // namespace urin_o_max_val_in_col_of_mat
