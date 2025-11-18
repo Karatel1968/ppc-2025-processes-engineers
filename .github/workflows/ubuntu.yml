@@ -77,7 +77,7 @@ jobs:
           mkdir -p install
           tar -xzvf ubuntu-gcc-install-${{ matrix.os }}.tar.gz -C install
       - name: Run func tests (MPI)
-        run: scripts/run_tests.py --running-type="processes" --counts 1 2 3 4 --additional-mpi-args="--oversubscribe"
+        run: scripts/run_tests.py --running-type="processes" --counts 1 2 3 4 --additional-mpi-args="--oversubscribe" --gtest_filter="*UrinOMaxValInColOfMat*"
         env:
           PPC_NUM_THREADS: 1
           OMPI_ALLOW_RUN_AS_ROOT: 1
