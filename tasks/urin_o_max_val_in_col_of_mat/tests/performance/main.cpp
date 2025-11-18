@@ -8,7 +8,7 @@
 namespace urin_o_max_val_in_col_of_mat {
 
 class UrinOMaxValInColOfMatPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kCount_ = 100;
+  const int kCount_ = 10000;
   InType input_data_{};
 
   void SetUp() override {
