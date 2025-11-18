@@ -4,6 +4,8 @@
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
 #include "urin_o_max_val_in_col_of_mat/seq/include/ops_seq.hpp"
 #include "util/include/perf_test_util.hpp"
+#include <cstddef>    
+#include <algorithm>
 
 namespace urin_o_max_val_in_col_of_mat {
 
@@ -16,11 +18,12 @@ class UrinOMaxValInColOfMatPerfTests : public ppc::util::BaseRunPerfTests<InType
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if (output_data.size() != static_cast<size_t>(input_data_)) {
+    if (output_data.size() != static_cast<std::size_t>(input_data_)) {
       return false;
     }
 
-    return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val >= 1 && val <= 1000; });
+    /*return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val >= 1 && val <= 1000; });*/
+    return std::ranges::all_of(output_data, [](int val) { return val >= 1 && val <= 1000; });
   }
 
   InType GetTestInputData() final {

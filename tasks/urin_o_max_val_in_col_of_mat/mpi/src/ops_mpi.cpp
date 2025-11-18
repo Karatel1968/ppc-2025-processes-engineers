@@ -1,13 +1,11 @@
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
 
 #include <mpi.h>
-
-#include <algorithm>
-#include <numeric>
 #include <vector>
+#include <algorithm>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
-#include "util/include/util.hpp"
+/*#include "util/include/util.hpp"*/
 
 namespace urin_o_max_val_in_col_of_mat {
 
@@ -26,7 +24,8 @@ bool UrinOMaxValInColOfMatMPI::PreProcessingImpl() {
 }
 
 bool UrinOMaxValInColOfMatMPI::RunImpl() {
-  int rank, size;
+  int rank = 0;
+  int size = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -36,7 +35,7 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
 
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
-      matrix[i][j] = (i * n + j) % 1000 + 1;
+      matrix[i][j] = ((i * n + j) % 1000) + 1;
     }
   }
 
@@ -57,9 +56,10 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
     int max_val = matrix[0][global_col];
 
     for (int row = 1; row < n; ++row) {
-      if (matrix[row][global_col] > max_val) {
-        max_val = matrix[row][global_col];
-      }
+      /*if (matrix[row][global_col] > max_val) {
+        max_val = matrix[row][global_col];*/
+        max_val = std::max(matrix[row][global_col], max_val);
+      
     }
     local_maxes[local_idx] = max_val;
   }

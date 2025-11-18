@@ -4,13 +4,9 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
-#include <numeric>
-#include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
-#include <vector>
+#include <algorithm> 
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
@@ -36,7 +32,8 @@ class UrinOMaxValInColOfMatFuncTests : public ppc::util::BaseRunFuncTests<InType
     if (output_data.size() != static_cast<size_t>(input_data_)) {
       return false;
     }
-    return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val > 0; });
+    /*return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val > 0; });*/
+    return std::ranges::all_of(output_data, [](int val) { return val > 0; });
   }
 
   InType GetTestInputData() final {

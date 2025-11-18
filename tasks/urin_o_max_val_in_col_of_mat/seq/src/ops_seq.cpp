@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
-#include "util/include/util.hpp"
+/*#include "util/include/util.hpp"*/
 
 namespace urin_o_max_val_in_col_of_mat {
 
@@ -30,7 +30,7 @@ bool UrinOMaxValInColOfMatSeq::RunImpl() {
 
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < n; ++j) {
-      matrix[i][j] = (i * n + j) % 1000 + 1;
+      matrix[i][j] = ((i * n + j) % 1000) + 1;
     }
   }
 
@@ -39,9 +39,10 @@ bool UrinOMaxValInColOfMatSeq::RunImpl() {
   for (int col = 0; col < n; ++col) {
     int max_val = matrix[0][col];
     for (int row = 1; row < n; ++row) {
-      if (matrix[row][col] > max_val) {
+      /*if (matrix[row][col] > max_val) {
         max_val = matrix[row][col];
-      }
+      }*/
+      max_val = std::max(matrix[row][col], max_val);
     }
     column_maxes[col] = max_val;
   }
