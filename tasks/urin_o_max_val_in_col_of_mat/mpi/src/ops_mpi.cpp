@@ -1,8 +1,9 @@
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
 
 #include <mpi.h>
-#include <vector>
+
 #include <algorithm>
+#include <vector>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 /*#include "util/include/util.hpp"*/
@@ -58,8 +59,7 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
     for (int row = 1; row < n; ++row) {
       /*if (matrix[row][global_col] > max_val) {
         max_val = matrix[row][global_col];*/
-        max_val = std::max(matrix[row][global_col], max_val);
-      
+      max_val = std::max(matrix[row][global_col], max_val);
     }
     local_maxes[local_idx] = max_val;
   }

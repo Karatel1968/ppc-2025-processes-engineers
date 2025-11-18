@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
 #include "urin_o_max_val_in_col_of_mat/seq/include/ops_seq.hpp"
 #include "util/include/perf_test_util.hpp"
-#include <cstddef>    
-#include <algorithm>
 
 namespace urin_o_max_val_in_col_of_mat {
 

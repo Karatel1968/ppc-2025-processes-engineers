@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <string>
 #include <tuple>
-#include <algorithm> 
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
