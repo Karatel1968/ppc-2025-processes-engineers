@@ -17,7 +17,34 @@ UrinOMaxValInColOfMatMPI::UrinOMaxValInColOfMatMPI(const InType &in) {
 }
 
 bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
-  return GetInput() > 0 && GetInput() <= 10000;
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  bool is_valid = false;
+  int rows = 0, cols = 0;
+
+  if (rank == 0) {
+    const auto &matrix = GetInput();
+    is_valid = !matrix.empty() && !matrix[0].empty();
+    if (is_valid) {
+      rows = matrix.size();
+      cols = matrix[0].size();
+      // Проверяем что матрица прямоугольная
+      for (const auto &row : matrix) {
+        if (row.size() != cols) {
+          is_valid = false;
+          break;
+        }
+      }
+    }
+  }
+
+  // Рассылаем результат валидации и размеры матрицы
+  MPI_Bcast(&is_valid, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  return is_valid;
 }
 
 bool UrinOMaxValInColOfMatMPI::PreProcessingImpl() {
@@ -30,18 +57,37 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  int n = GetInput();
+  // Получаем размеры матрицы
+  int rows = 0, cols = 0;
+  if (rank == 0) {
+    const auto &matrix = GetInput();
+    rows = matrix.size();
+    cols = matrix[0].size();
+  }
 
-  std::vector<std::vector<int>> matrix(n, std::vector<int>(n));
+  MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      matrix[i][j] = ((i * n + j) % 1000) + 1;
+  // Создаем локальную матрицу на всех процессах
+  std::vector<std::vector<int>> local_matrix(rows, std::vector<int>(cols));
+
+  // Рассылаем матрицу всем процессам построчно
+  if (rank == 0) {
+    const auto &source_matrix = GetInput();
+    for (int i = 0; i < rows; ++i) {
+      std::copy(source_matrix[i].begin(), source_matrix[i].end(), local_matrix[i].begin());
+      // Рассылаем строку всем процессам
+      MPI_Bcast(local_matrix[i].data(), cols, MPI_INT, 0, MPI_COMM_WORLD);
+    }
+  } else {
+    for (int i = 0; i < rows; ++i) {
+      MPI_Bcast(local_matrix[i].data(), cols, MPI_INT, 0, MPI_COMM_WORLD);
     }
   }
 
-  int base_cols_per_process = n / size;
-  int remainder = n % size;
+  // Распределяем столбцы между процессами
+  int base_cols_per_process = cols / size;
+  int remainder = cols % size;
 
   int start_col = 0;
   for (int i = 0; i < rank; ++i) {
@@ -50,20 +96,22 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
   int end_col = start_col + base_cols_per_process + (rank < remainder ? 1 : 0);
   int local_cols_count = end_col - start_col;
 
-  std::vector<int> local_maxes(local_cols_count, 0);
+  // Вычисляем локальные максимумы для назначенных столбцов
+  std::vector<int> local_maxima(local_cols_count);
 
   for (int local_idx = 0; local_idx < local_cols_count; ++local_idx) {
     int global_col = start_col + local_idx;
-    int max_val = matrix[0][global_col];
+    int col_max = local_matrix[0][global_col];
 
-    for (int row = 1; row < n; ++row) {
-      /*if (matrix[row][global_col] > max_val) {
-        max_val = matrix[row][global_col];*/
-      max_val = std::max(matrix[row][global_col], max_val);
+    for (int row = 1; row < rows; ++row) {
+      if (local_matrix[row][global_col] > col_max) {
+        col_max = local_matrix[row][global_col];
+      }
     }
-    local_maxes[local_idx] = max_val;
+    local_maxima[local_idx] = col_max;
   }
 
+  // Собираем результаты со всех процессов
   std::vector<int> recv_counts(size);
   std::vector<int> displs(size);
 
@@ -74,14 +122,15 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
     displs[i] = displs[i - 1] + recv_counts[i - 1];
   }
 
-  OutType all_column_maxes(n);
-
-  MPI_Gatherv(local_maxes.data(), local_cols_count, MPI_INT, all_column_maxes.data(), recv_counts.data(), displs.data(),
+  // Собираем все максимумы на процессе 0
+  OutType all_maxima(cols);
+  MPI_Gatherv(local_maxima.data(), local_cols_count, MPI_INT, all_maxima.data(), recv_counts.data(), displs.data(),
               MPI_INT, 0, MPI_COMM_WORLD);
 
-  MPI_Bcast(all_column_maxes.data(), n, MPI_INT, 0, MPI_COMM_WORLD);
+  // Рассылаем результаты всем процессам
+  MPI_Bcast(all_maxima.data(), cols, MPI_INT, 0, MPI_COMM_WORLD);
 
-  GetOutput() = all_column_maxes;
+  GetOutput() = all_maxima;
   return true;
 }
 

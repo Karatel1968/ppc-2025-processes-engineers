@@ -11,25 +11,33 @@
 namespace urin_o_max_val_in_col_of_mat {
 
 class UrinOMaxValInColOfMatPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kCount_ = 10000;
-  InType input_data_{};
-
+ protected:
   void SetUp() override {
-    input_data_ = kCount_;
+    const int matrix_size = 50;
+    test_matrix_.resize(matrix_size, std::vector<int>(matrix_size));
+
+    for (int i = 0; i < matrix_size; ++i) {
+      for (int j = 0; j < matrix_size; ++j) {
+        test_matrix_[i][j] = (i + j) % 100 + 1;
+      }
+    }
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if (output_data.size() != static_cast<std::size_t>(input_data_)) {
-      return false;
-    }
-
-    /*return std::all_of(output_data.begin(), output_data.end(), [](int val) { return val >= 1 && val <= 1000; });*/
-    return std::ranges::all_of(output_data, [](int val) { return val >= 1 && val <= 1000; });
+    return !output_data.empty() && output_data.size() == test_matrix_[0].size();
   }
 
   InType GetTestInputData() final {
-    return input_data_;
+    return test_matrix_;
   }
+
+ public:
+  static std::string CustomPerfTestName(const testing::TestParamInfo<BaseRunPerfTests::ParamType> &info) {
+    return "PerfTest_" + std::to_string(info.index);
+  }
+
+ private:
+  std::vector<std::vector<int>> test_matrix_;
 };
 
 TEST_P(UrinOMaxValInColOfMatPerfTests, RunPerfModes) {

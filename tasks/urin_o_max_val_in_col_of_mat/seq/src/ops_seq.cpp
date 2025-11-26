@@ -15,7 +15,20 @@ UrinOMaxValInColOfMatSeq::UrinOMaxValInColOfMatSeq(const InType &in) {
 }
 
 bool UrinOMaxValInColOfMatSeq::ValidationImpl() {
-  return GetInput() > 0 && GetInput() <= 10000;
+  const auto &matrix = GetInput();
+
+  if (matrix.empty()) {
+    return false;
+  }
+
+  size_t cols = matrix[0].size();
+  for (const auto &row : matrix) {
+    if (row.size() != cols) {
+      return false;  // Не прямоугольная матрица
+    }
+  }
+
+  return true;
 }
 
 bool UrinOMaxValInColOfMatSeq::PreProcessingImpl() {
@@ -23,30 +36,32 @@ bool UrinOMaxValInColOfMatSeq::PreProcessingImpl() {
 }
 
 bool UrinOMaxValInColOfMatSeq::RunImpl() {
-  int n = GetInput();
+  const auto &matrix = GetInput();
 
-  std::vector<std::vector<int>> matrix(n, std::vector<int>(n));
-
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      matrix[i][j] = ((i * n + j) % 1000) + 1;
-    }
+  if (matrix.empty()) {
+    return false;
   }
 
-  OutType column_maxes(n);
+  size_t rows = matrix.size();
+  size_t cols = matrix[0].size();
 
-  for (int col = 0; col < n; ++col) {
-    int max_val = matrix[0][col];
-    for (int row = 1; row < n; ++row) {
-      /*if (matrix[row][col] > max_val) {
+  // Инициализируем выходной вектор размером с количество столбцов
+  OutType column_maxima(cols);
+
+  // Для каждого столбца находим максимальное значение
+  for (size_t col = 0; col < cols; ++col) {
+    int max_val = matrix[0][col];  // Начинаем с первого элемента столбца
+
+    for (size_t row = 1; row < rows; ++row) {
+      if (matrix[row][col] > max_val) {
         max_val = matrix[row][col];
-      }*/
-      max_val = std::max(matrix[row][col], max_val);
+      }
     }
-    column_maxes[col] = max_val;
+
+    column_maxima[col] = max_val;
   }
 
-  GetOutput() = column_maxes;
+  GetOutput() = column_maxima;
   return true;
 }
 
