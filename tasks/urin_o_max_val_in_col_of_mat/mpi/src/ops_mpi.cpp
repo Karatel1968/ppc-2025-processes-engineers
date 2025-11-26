@@ -31,7 +31,7 @@ bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
       cols = matrix[0].size();
       // Проверяем что матрица прямоугольная
       for (const auto &row : matrix) {
-        if (row.size() != cols) {
+        if (row.size() != static_cast<size_t>(cols)) {
           is_valid = false;
           break;
         }
