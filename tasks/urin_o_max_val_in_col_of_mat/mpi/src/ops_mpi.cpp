@@ -14,7 +14,7 @@ namespace urin_o_max_val_in_col_of_mat {
 UrinOMaxValInColOfMatMPI::UrinOMaxValInColOfMatMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = OutType{};
+  GetOutput() = std::vector<int>();
 }
 
 bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
