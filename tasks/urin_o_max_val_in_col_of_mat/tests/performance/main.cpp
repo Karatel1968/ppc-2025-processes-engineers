@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <algorithm>
-#include <cstddef>
+/*#include <algorithm>
+#include <cstddef>*/
+#include <vector>
+#include <string>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
@@ -18,7 +20,7 @@ class UrinOMaxValInColOfMatPerfTests : public ppc::util::BaseRunPerfTests<InType
 
     for (int i = 0; i < matrix_size; ++i) {
       for (int j = 0; j < matrix_size; ++j) {
-        test_matrix_[i][j] = (i + j) % 100 + 1;
+        test_matrix_[i][j] = ((i + j) % 100) + 1;
       }
     }
   }

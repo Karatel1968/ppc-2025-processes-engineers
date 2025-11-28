@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cstddef>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 /*#include "util/include/util.hpp"*/
@@ -21,7 +22,8 @@ bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   bool is_valid = false;
-  int rows = 0, cols = 0;
+  int rows = 0;
+  int cols = 0;
 
   if (rank == 0) {
     const auto &matrix = GetInput();
@@ -61,8 +63,8 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
   int rows = 0, cols = 0;
   if (rank == 0) {
     const auto &matrix = GetInput();
-    rows = matrix.size();
-    cols = matrix[0].size();
+    rows = static_cast<int>(matrix.size());
+    cols = static_cast<int>(matrix[0].size());
   }
 
   MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -104,9 +106,10 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
     int col_max = local_matrix[0][global_col];
 
     for (int row = 1; row < rows; ++row) {
-      if (local_matrix[row][global_col] > col_max) {
+      /*if (local_matrix[row][global_col] > col_max) {
         col_max = local_matrix[row][global_col];
-      }
+      }*/
+      col_max = std::max(local_matrix[row][global_col], col_max);
     }
     local_maxima[local_idx] = col_max;
   }

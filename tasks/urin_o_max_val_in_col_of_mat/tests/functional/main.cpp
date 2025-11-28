@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 // #include <stb/stb_image.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
@@ -15,7 +15,7 @@
 
 namespace urin_o_max_val_in_col_of_mat {
 
-std::vector<std::vector<int>> GenerateTestMatrix(int size) {
+static std::vector<std::vector<int>> GenerateTestMatrix(int size) {
   std::vector<std::vector<int>> matrix(size, std::vector<int>(size));
   for (int i = 0; i < size; ++i) {
     for (int j = 0; j < size; ++j) {
@@ -26,7 +26,7 @@ std::vector<std::vector<int>> GenerateTestMatrix(int size) {
 }
 
 // Вспомогательная функция для вычисления ожидаемых результатов
-std::vector<int> CalculateExpectedMaxima(const std::vector<std::vector<int>> &matrix) {
+static std::vector<int> CalculateExpectedMaxima(const std::vector<std::vector<int>> &matrix) {
   if (matrix.empty()) {
     return {};
   }
@@ -38,9 +38,10 @@ std::vector<int> CalculateExpectedMaxima(const std::vector<std::vector<int>> &ma
   for (size_t col = 0; col < cols; ++col) {
     int max_val = matrix[0][col];
     for (size_t row = 1; row < rows; ++row) {
-      if (matrix[row][col] > max_val) {
+      /*if (matrix[row][col] > max_val) {
         max_val = matrix[row][col];
-      }
+      }*/
+      max_val = std::max(matrix[row][col], max_val);
     }
     expected_maxima[col] = max_val;
   }
