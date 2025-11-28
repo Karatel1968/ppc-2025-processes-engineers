@@ -2,8 +2,8 @@
 
 /*#include <algorithm>
 #include <cstddef>*/
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 #include "urin_o_max_val_in_col_of_mat/mpi/include/ops_mpi.hpp"
