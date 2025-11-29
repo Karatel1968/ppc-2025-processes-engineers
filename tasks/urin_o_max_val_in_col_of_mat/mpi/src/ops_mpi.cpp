@@ -29,8 +29,8 @@ bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
     const auto &matrix = GetInput();
     is_valid = !matrix.empty() && !matrix[0].empty();
     if (is_valid) {
-      rows = matrix.size();
-      cols = matrix[0].size();
+      rows = static_cast<int>(matrix.size());
+      cols = static_cast<int>(matrix[0].size());
       // Проверяем что матрица прямоугольная
       for (const auto &row : matrix) {
         if (row.size() != static_cast<size_t>(cols)) {
@@ -38,6 +38,10 @@ bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
           break;
         }
       }
+    }
+    if (!is_valid) {
+      rows = 0;
+      cols = 0;
     }
   }
 
@@ -63,13 +67,22 @@ bool UrinOMaxValInColOfMatMPI::RunImpl() {
   int rows = 0, cols = 0;
   if (rank == 0) {
     const auto &matrix = GetInput();
-    rows = static_cast<int>(matrix.size());
-    cols = static_cast<int>(matrix[0].size());
+    if (matrix.empty() || matrix[0].empty()) {
+      rows = 0;
+      cols = 0;
+    } else {
+      rows = static_cast<int>(matrix.size());
+      cols = static_cast<int>(matrix[0].size());
+    }
   }
 
   MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+  if (rows == 0 || cols == 0) {
+    GetOutput() = OutType();
+    return true;
+  }
   // Создаем локальную матрицу на всех процессах
   std::vector<std::vector<int>> local_matrix(rows, std::vector<int>(cols));
 
