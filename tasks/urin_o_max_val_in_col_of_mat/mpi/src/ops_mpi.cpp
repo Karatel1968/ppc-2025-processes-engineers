@@ -13,7 +13,12 @@ namespace urin_o_max_val_in_col_of_mat {
 
 UrinOMaxValInColOfMatMPI::UrinOMaxValInColOfMatMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
-  GetInput() = in;
+  // GetInput() = in;
+  if (!in.empty()) {
+    GetInput() = in;
+  } else {
+    GetInput() = InType();  // Explicit empty vector
+  }
   GetOutput() = std::vector<int>();
 }
 
