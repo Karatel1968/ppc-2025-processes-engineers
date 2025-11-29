@@ -10,7 +10,12 @@ namespace urin_o_max_val_in_col_of_mat {
 
 UrinOMaxValInColOfMatSeq::UrinOMaxValInColOfMatSeq(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
-  GetInput() = in;
+  // GetInput() = in;
+  if (!in.empty()) {
+    GetInput() = in;
+  } else {
+    GetInput() = InType();  // Explicit empty vector
+  }
   GetOutput() = OutType{};
 }
 
