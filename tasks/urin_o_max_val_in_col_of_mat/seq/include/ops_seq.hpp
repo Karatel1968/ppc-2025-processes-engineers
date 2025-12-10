@@ -10,6 +10,10 @@ class UrinOMaxValInColOfMatSeq : public BaseTask {
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kSEQ;
   }
+
+  using InType = std::vector<std::vector<int>>;
+  using OutType = std::vector<int>;
+
   explicit UrinOMaxValInColOfMatSeq(const InType &in);
 
  private:

@@ -23,18 +23,18 @@ UrinOMaxValInColOfMatSeq::UrinOMaxValInColOfMatSeq(const InType &in) {
 bool UrinOMaxValInColOfMatSeq::ValidationImpl() {
   const auto &matrix = GetInput();
 
-  if (matrix.empty()) {
+  if (matrix.empty() || matrix[0].empty()) {
     return false;
   }
 
   size_t cols = matrix[0].size();
-  /*for (const auto &row : matrix) {
+  for (const auto &row : matrix) {
     if (row.size() != cols) {
       return false;  // Не прямоугольная матрица
     }
   }
 
-  return true;*/
+  return true;
   return std::ranges::all_of(matrix, [cols](const auto &row) { return row.size() == cols; });
 }
 
@@ -45,7 +45,8 @@ bool UrinOMaxValInColOfMatSeq::PreProcessingImpl() {
 bool UrinOMaxValInColOfMatSeq::RunImpl() {
   const auto &matrix = GetInput();
 
-  if (matrix.empty()) {
+  if (matrix.empty() || matrix[0].empty()) {
+    GetOutput() = OutType();
     return false;
   }
 

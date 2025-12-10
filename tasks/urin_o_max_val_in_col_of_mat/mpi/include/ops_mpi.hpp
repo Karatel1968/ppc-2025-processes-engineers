@@ -10,6 +10,7 @@ class UrinOMaxValInColOfMatMPI : public BaseTask {
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kMPI;
   }
+  using InType = std::vector<std::vector<int>>;
   using OutType = std::vector<int>;
   explicit UrinOMaxValInColOfMatMPI(const InType &in);
 
@@ -20,11 +21,12 @@ class UrinOMaxValInColOfMatMPI : public BaseTask {
   bool PostProcessingImpl() override;
 
   std::pair<int, int> GetMatrixDimensions(int rank);
-  std::vector<std::vector<int>> DistributeMatrix(int rank, int rows, int cols);
-  std::pair<int, int> CalculateColumnDistribution(int rank, int size, int cols);
-  std::vector<int> ComputeLocalMaxima(const std::vector<std::vector<int>> &local_matrix, int rows, int start_col,
-                                      int local_cols_count);
-  OutType GatherResults(const std::vector<int> &local_maxima, int size, int cols);
+  // std::vector<std::vector<int>> DistributeMatrix(int rank, int rows, int cols);
+  void DistributeMatrixData(int rank, int rows, int cols, std::vector<std::vector<int>> &local_matrix);
+  static std::pair<int, int> CalculateColumnDistribution(int rank, int size, int cols);
+  static std::vector<int> ComputeLocalMaxima(const std::vector<std::vector<int>> &local_matrix, int rows, int start_col,
+                                             int local_cols_count);
+  static OutType GatherResults(const std::vector<int> &local_maxima, int size, int cols);
 };
 
 }  // namespace urin_o_max_val_in_col_of_mat
