@@ -35,7 +35,7 @@ bool UrinOMaxValInColOfMatSeq::ValidationImpl() {
   }
 
   return true;
-  return std::ranges::all_of(matrix, [cols](const auto &row) { return row.size() == cols; });
+  // return std::ranges::all_of(matrix, [cols](const auto &row) { return row.size() == cols; });
 }
 
 bool UrinOMaxValInColOfMatSeq::PreProcessingImpl() {
