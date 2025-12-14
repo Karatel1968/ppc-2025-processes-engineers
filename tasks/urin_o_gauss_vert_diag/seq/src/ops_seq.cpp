@@ -1,10 +1,10 @@
 #include "urin_o_gauss_vert_diag/seq/include/ops_seq.hpp"
 
-#include <numeric>
-#include <vector>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <numeric>
 #include <random>
+#include <vector>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "util/include/util.hpp"
@@ -51,12 +51,13 @@ void UrinOGaussVertDiagSEQ::GenerateRandomMatrix(size_t size, std::vector<std::v
   }
 }
 
-bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>> &a, 
-                                          const std::vector<double> &b,
+bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>> &a, const std::vector<double> &b,
                                           std::vector<double> &x) {
   size_t n = a.size();
-  if (n == 0) return false;
-  
+  if (n == 0) {
+    return false;
+  }
+
   // Создаем расширенную матрицу
   std::vector<std::vector<double>> augmented(n, std::vector<double>(n + 1));
   for (size_t i = 0; i < n; ++i) {
@@ -65,13 +66,13 @@ bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>>
     }
     augmented[i][n] = b[i];
   }
-  
+
   // Прямой ход метода Гаусса
   for (size_t k = 0; k < n; ++k) {
     // Поиск ведущего элемента
     size_t max_row = k;
     double max_val = std::abs(augmented[k][k]);
-    
+
     for (size_t i = k + 1; i < n; ++i) {
       double val = std::abs(augmented[i][k]);
       if (val > max_val) {
@@ -79,22 +80,22 @@ bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>>
         max_row = i;
       }
     }
-    
+
     if (max_val < 1e-12) {
       return false;  // Матрица вырождена
     }
-    
+
     // Обмен строк
     if (max_row != k) {
       std::swap(augmented[k], augmented[max_row]);
     }
-    
+
     // Нормализация строки
     double pivot = augmented[k][k];
     for (size_t j = k; j <= n; ++j) {
       augmented[k][j] /= pivot;
     }
-    
+
     // Исключение переменной
     for (size_t i = k + 1; i < n; ++i) {
       double factor = augmented[i][k];
@@ -103,7 +104,7 @@ bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>>
       }
     }
   }
-  
+
   // Обратный ход
   x.resize(n);
   for (int i = static_cast<int>(n) - 1; i >= 0; --i) {
@@ -112,7 +113,7 @@ bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>>
       x[i] -= augmented[i][j] * x[j];
     }
   }
-  
+
   return true;
 }
 
@@ -161,6 +162,5 @@ bool UrinOGaussVertDiagSEQ::PostProcessingImpl() {
 
   return true;
 }
-
 
 }  // namespace urin_o_gauss_vert_diag

@@ -60,14 +60,9 @@ TEST_P(UrinRunFuncTestsGaussVertical, GaussVerticalDiagonalTest) {
 }
 
 // Тестовые параметры: {размер_матрицы, название_теста}
-const std::array<TestType, 6> kTestParam = {
-    std::make_tuple(3, "small_matrix"),
-    std::make_tuple(5, "medium_matrix"),
-    std::make_tuple(10, "large_matrix"),
-    std::make_tuple(15, "xlarge_matrix"),
-    std::make_tuple(20, "xxlarge_matrix"),
-    std::make_tuple(25, "huge_matrix")
-};
+const std::array<TestType, 6> kTestParam = {std::make_tuple(3, "small_matrix"),    std::make_tuple(5, "medium_matrix"),
+                                            std::make_tuple(10, "large_matrix"),   std::make_tuple(15, "xlarge_matrix"),
+                                            std::make_tuple(20, "xxlarge_matrix"), std::make_tuple(25, "huge_matrix")};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<UrinOGaussVertDiagMPI, InType>(kTestParam, PPC_SETTINGS_urin_o_gauss_vert_diag),
