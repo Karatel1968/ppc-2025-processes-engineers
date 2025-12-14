@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <mpi.h>
+/*#include <mpi.h>
 
 #include <chrono>
 #include <cmath>
@@ -9,7 +9,7 @@
 #include <string>
 #include <tuple>
 #include <utility>
-#include <vector>
+#include <vector>*/
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"
@@ -24,11 +24,10 @@ class UrinRunPerfTestGaussVertical : public ppc::util::BaseRunPerfTests<InType, 
 
  protected:
   void SetUp() override {
-    input_data_ = kCount_;
+    input_data_ = kMatrixSize;
   }
 
   bool CheckTestOutputData(OutType &output_data) override {
-    // Для тестов производительности проверяем, что результат положительный
     return output_data > 0;
   }
 
@@ -37,8 +36,8 @@ class UrinRunPerfTestGaussVertical : public ppc::util::BaseRunPerfTests<InType, 
   }
 
  private:
-  const int kCount_ = 1000;  // Размер матрицы для тестов производительности
-  InType input_data_;
+  static constexpr InType kMatrixSize = 1000;
+  InType input_data_{0};
 };
 
 TEST_P(UrinRunPerfTestGaussVertical, RunPerfModes) {
@@ -50,8 +49,7 @@ const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, UrinOGaussVertDia
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
-const auto kPerfTestName = UrinRunPerfTestGaussVertical::CustomPerfTestName;
-
-INSTANTIATE_TEST_SUITE_P(RunModeTests, UrinRunPerfTestGaussVertical, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(RunModeTests, UrinRunPerfTestGaussVertical, kGtestValues,
+                         UrinRunPerfTestGaussVertical::CustomPerfTestName);
 
 }  // namespace urin_o_gauss_vert_diag

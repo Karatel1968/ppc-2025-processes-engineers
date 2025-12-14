@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <vector>
+
 #include "task/include/task.hpp"
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 
@@ -19,7 +22,8 @@ class UrinOGaussVertDiagSEQ : public BaseTask {
   bool PostProcessingImpl() override;
 
   static void GenerateRandomMatrix(size_t size, std::vector<std::vector<double>> &matrix, std::vector<double> &vector);
-  bool SolveGaussian(const std::vector<std::vector<double>> &a, const std::vector<double> &b, std::vector<double> &x);
+  static bool SolveGaussian(const std::vector<std::vector<double>> &a, const std::vector<double> &b,
+                            std::vector<double> &x);
 };
 
 }  // namespace urin_o_gauss_vert_diag
