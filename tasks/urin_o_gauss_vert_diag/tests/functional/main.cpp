@@ -12,11 +12,11 @@
 #include <utility>
 #include <vector>
 
-#include "urin_o_gauss_vert_diag/common/include/common.hpp"
+// #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"
 #include "urin_o_gauss_vert_diag/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
-#include "util/include/util.hpp"
+// #include "util/include/util.hpp"
 
 namespace urin_o_gauss_vert_diag {
 
@@ -48,8 +48,8 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
  private:
-  InType input_data_;
-  OutType expected_output_;
+  InType input_data_{0};
+  OutType expected_output_{0};
   std::string test_name_;
 };
 

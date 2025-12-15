@@ -29,8 +29,16 @@ bool UrinOGaussVertDiagSEQ::PreProcessingImpl() {
 
 void UrinOGaussVertDiagSEQ::GenerateRandomMatrix(std::size_t size, std::vector<std::vector<double>> &matrix,
                                                  std::vector<double> &rhs) {
-  matrix.assign(size, std::vector<double>(size, 0.0));
-  rhs.assign(size, 0.0);
+  /*matrix.assign(size, std::vector<double>(size, 0.0));
+  rhs.assign(size, 0.0);*/
+  matrix.clear();
+  matrix.resize(size);
+  for (std::size_t i = 0; i < size; ++i) {
+    matrix[i].assign(size, 0.0);
+  }
+
+  rhs.clear();
+  rhs.resize(size, 0.0);
 
   std::random_device device;
   std::mt19937 generator(device());

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <vector>
+
 #include "task/include/task.hpp"
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 

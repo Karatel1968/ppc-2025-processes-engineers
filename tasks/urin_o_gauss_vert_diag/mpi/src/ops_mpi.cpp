@@ -6,11 +6,10 @@
 #include <cmath>
 #include <numeric>
 #include <random>
-#include <utility>
 #include <vector>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
-#include "util/include/util.hpp"
+// #include "util/include/util.hpp"
 
 namespace urin_o_gauss_vert_diag {
 
@@ -32,111 +31,122 @@ bool UrinOGaussVertDiagMPI::PreProcessingImpl() {
 void UrinOGaussVertDiagMPI::GenerateRandomMatrix(std::size_t size, std::vector<double> &augmented) {
   augmented.assign(size * (size + 1), 0.0);
 
-  std::random_device device;
-  std::mt19937 generator(device());
-  std::uniform_real_distribution<double> dist(0.1, 1.0);
+  std::mt19937 gen(123);
+  std::uniform_real_distribution<double> off_diag(0.1, 1.0);
+  std::uniform_real_distribution<double> diag_add(1.0, 5.0);
+  std::uniform_real_distribution<double> rhs_dist(1.0, 10.0);
 
   for (std::size_t row = 0; row < size; ++row) {
-    double row_sum = 0.0;
-
+    double sum = 0.0;
     for (std::size_t col = 0; col < size; ++col) {
       if (row != col) {
-        const double value = dist(generator);
-        augmented[row * (size + 1) + col] = value;
-        row_sum += std::abs(value);
+        const double v = off_diag(gen);
+        augmented[(row * (size + 1)) + col] = v;
+        sum += std::abs(v);
       }
     }
-
-    augmented[row * (size + 1) + row] = row_sum + dist(generator);
-    augmented[row * (size + 1) + size] = dist(generator);
-  }
-}
-
-void UrinOGaussVertDiagMPI::CalculateColumnDistribution(std::size_t columns, int process_count,
-                                                        std::vector<int> &counts, std::vector<int> &displacements) {
-  counts.assign(process_count, 0);
-  displacements.assign(process_count, 0);
-
-  const int base = static_cast<int>(columns / process_count);
-  const int remainder = static_cast<int>(columns % process_count);
-
-  for (int proc = 0; proc < process_count; ++proc) {
-    counts[proc] = base + ((proc < remainder) ? 1 : 0);
-    if (proc > 0) {
-      displacements[proc] = displacements[proc - 1] + counts[proc - 1];
-    }
+    augmented[(row * (size + 1)) + row] = sum + diag_add(gen);
+    augmented[(row * (size + 1)) + size] = rhs_dist(gen);
   }
 }
 
 bool UrinOGaussVertDiagMPI::RunImpl() {
   int rank = 0;
-  int process_count = 0;
+  int proc_count = 0;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &process_count);
+  MPI_Comm_size(MPI_COMM_WORLD, &proc_count);
 
-  const std::size_t size = static_cast<std::size_t>(GetInput());
-  const std::size_t cols = size + 1;
+  const auto size = static_cast<std::size_t>(GetInput());
+  const std::size_t row_width = size + 1;
 
+  // -------- Распределение строк --------
+  std::vector<int> rows_per_proc(proc_count, 0);
+  std::vector<int> displs(proc_count, 0);
+
+  for (int i = 0; i < proc_count; ++i) {
+    rows_per_proc[i] = static_cast<int>(size / proc_count);
+    if (static_cast<std::size_t>(i) < size % proc_count) {
+      rows_per_proc[i]++;
+    }
+  }
+
+  std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
+
+  const std::size_t local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
+
+  std::vector<double> local_matrix(local_rows * row_width);
   std::vector<double> full_matrix;
+
   if (rank == 0) {
     GenerateRandomMatrix(size, full_matrix);
   }
 
-  std::vector<int> counts;
-  std::vector<int> displacements;
-  CalculateColumnDistribution(cols, process_count, counts, displacements);
+  std::vector<int> send_counts(proc_count);
+  std::vector<int> send_displs(proc_count);
 
-  const int local_cols = counts[rank];
-  std::vector<double> local_matrix(size * static_cast<std::size_t>(local_cols));
+  for (int i = 0; i < proc_count; ++i) {
+    send_counts[i] = rows_per_proc[i] * static_cast<int>(row_width);
+    send_displs[i] = displs[i] * static_cast<int>(row_width);
+  }
 
-  MPI_Scatterv(full_matrix.data(), counts.data(), displacements.data(), MPI_DOUBLE, local_matrix.data(),
-               local_cols * static_cast<int>(size), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Scatterv(full_matrix.data(), send_counts.data(), send_displs.data(), MPI_DOUBLE, local_matrix.data(),
+               static_cast<int>(local_matrix.size()), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-  // === Прямой ход ===
+  // -------- Прямой ход --------
+  std::vector<double> pivot_row(row_width);
+
   for (std::size_t k = 0; k < size; ++k) {
-    double pivot = 0.0;
+    const int owner = static_cast<int>(k * proc_count / size);
 
-    if (static_cast<std::size_t>(displacements[rank]) <= k &&
-        k < static_cast<std::size_t>(displacements[rank] + local_cols)) {
-      const std::size_t local_col = k - static_cast<std::size_t>(displacements[rank]);
-      pivot = local_matrix[k * local_cols + local_col];
+    if (rank == owner) {
+      const std::size_t local_k = k - static_cast<std::size_t>(displs[rank]);
+
+      double pivot = local_matrix[(local_k * row_width) + k];
+
+      for (std::size_t col = k; col < row_width; ++col) {
+        pivot_row[col] = local_matrix[(local_k * row_width) + col] / pivot;
+      }
     }
 
-    MPI_Bcast(&pivot, 1, MPI_DOUBLE, k % process_count, MPI_COMM_WORLD);
+    MPI_Bcast(pivot_row.data(), static_cast<int>(row_width), MPI_DOUBLE, owner, MPI_COMM_WORLD);
 
-    for (std::size_t row = k + 1; row < size; ++row) {
-      double factor = 0.0;
+    for (std::size_t row = 0; row < local_rows; ++row) {
+      const std::size_t global_row = static_cast<std::size_t>(displs[rank]) + row;
 
-      if (static_cast<std::size_t>(displacements[rank]) <= k &&
-          k < static_cast<std::size_t>(displacements[rank] + local_cols)) {
-        const std::size_t local_col = k - static_cast<std::size_t>(displacements[rank]);
-        factor = local_matrix[row * local_cols + local_col] / pivot;
-      }
+      if (global_row > k) {
+        const double factor = local_matrix[(row * row_width) + k];
 
-      MPI_Bcast(&factor, 1, MPI_DOUBLE, k % process_count, MPI_COMM_WORLD);
-
-      for (int col = 0; col < local_cols; ++col) {
-        local_matrix[row * local_cols + col] -= factor * local_matrix[k * local_cols + col];
+        for (std::size_t col = k; col < row_width; ++col) {
+          local_matrix[(row * row_width) + col] -= factor * pivot_row[col];
+        }
       }
     }
   }
 
-  // === Сбор решения ===
-  std::vector<double> solution(size, 0.0);
+  // -------- Сбор матрицы --------
   if (rank == 0) {
-    for (std::size_t i = 0; i < size; ++i) {
-      solution[i] = 1.0;  // устойчивое положительное решение
-    }
+    full_matrix.resize(size * row_width);
   }
 
-  double local_sum = std::accumulate(solution.begin(), solution.end(), 0.0);
+  MPI_Gatherv(local_matrix.data(), static_cast<int>(local_matrix.size()), MPI_DOUBLE, full_matrix.data(),
+              send_counts.data(), send_displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-  double global_sum = 0.0;
-  MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
+  // -------- Обратный ход (rank 0) --------
   if (rank == 0) {
-    GetOutput() = std::max(1, static_cast<int>(std::round(std::abs(global_sum))));
+    std::vector<double> solution(size, 0.0);
+
+    for (std::size_t i = size; i-- > 0;) {
+      double value = full_matrix[(i * row_width) + size];
+      for (std::size_t j = i + 1; j < size; ++j) {
+        value -= full_matrix[(i * row_width) + j] * solution[j];
+      }
+      solution[i] = value;
+    }
+
+    const double sum = std::accumulate(solution.begin(), solution.end(), 0.0);
+
+    GetOutput() = static_cast<int>(std::round(std::abs(sum)));
   }
 
   return true;

@@ -21,9 +21,9 @@ class UrinOGaussVertDiagSEQ : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  static void GenerateRandomMatrix(size_t size, std::vector<std::vector<double>> &matrix, std::vector<double> &vector);
-  static bool SolveGaussian(const std::vector<std::vector<double>> &a, const std::vector<double> &b,
-                            std::vector<double> &x);
+  static void GenerateRandomMatrix(size_t size, std::vector<std::vector<double>> &matrix, std::vector<double> &rhs);
+  static bool SolveGaussian(const std::vector<std::vector<double>> &matrix, const std::vector<double> &rhs,
+                            std::vector<double> &solution);
 };
 
 }  // namespace urin_o_gauss_vert_diag
