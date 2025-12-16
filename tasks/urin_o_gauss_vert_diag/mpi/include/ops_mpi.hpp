@@ -26,6 +26,8 @@ class UrinOGaussVertDiagMPI : public BaseTask {
 
   static void CalculateColumnDistribution(std::size_t columns, int process_count, std::vector<int> &counts,
                                           std::vector<int> &displacements);
+
+  static int FindOwner(std::size_t global_row, const std::vector<int> &displs, const std::vector<int> &rows_per_proc);
 };
 
 }  // namespace urin_o_gauss_vert_diag

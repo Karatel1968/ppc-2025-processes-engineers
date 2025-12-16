@@ -50,6 +50,18 @@ void UrinOGaussVertDiagMPI::GenerateRandomMatrix(std::size_t size, std::vector<d
   }
 }
 
+int UrinOGaussVertDiagMPI::FindOwner(std::size_t global_row, const std::vector<int> &displs,
+                                     const std::vector<int> &rows_per_proc) {
+  for (std::size_t i = 0; i < displs.size(); ++i) {
+    const std::size_t begin = static_cast<std::size_t>(displs[i]);
+    const std::size_t end = begin + static_cast<std::size_t>(rows_per_proc[i]);
+    if (global_row >= begin && global_row < end) {
+      return static_cast<int>(i);
+    }
+  }
+  return 0;
+}
+
 bool UrinOGaussVertDiagMPI::RunImpl() {
   int rank = 0;
   int proc_count = 0;
@@ -97,7 +109,8 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
   std::vector<double> pivot_row(row_width);
 
   for (std::size_t k = 0; k < size; ++k) {
-    const int owner = static_cast<int>(k * proc_count / size);
+    // const int owner = static_cast<int>(k * proc_count / size);
+    const int owner = FindOwner(k, displs, rows_per_proc);
 
     if (rank == owner) {
       const std::size_t local_k = k - static_cast<std::size_t>(displs[rank]);
