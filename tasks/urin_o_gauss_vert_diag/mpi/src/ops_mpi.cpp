@@ -107,8 +107,10 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
     }
   }
 
-  std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
-
+  // std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
+  for (int i = 1; i < proc_count; ++i) {
+    displs[i] = displs[i - 1] + rows_per_proc[i - 1];
+  }
   // const std::size_t local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
 
   const auto local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
@@ -140,7 +142,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
     const int owner = FindOwner(k, displs, rows_per_proc);
 
     if (rank == owner) {
-      const std::size_t local_k = k - static_cast<std::size_t>(displs[rank]);
+      const auto local_k = k - static_cast<std::size_t>(displs[rank]);
       NormalizePivotRow(local_matrix, pivot_row, local_k, k, row_width);
       /*double pivot = local_matrix[(local_k * row_width) + k];
 
@@ -201,9 +203,6 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 }
 
 bool UrinOGaussVertDiagMPI::PostProcessingImpl() {
-  if (GetOutput() <= 0) {
-    GetOutput() = 1;
-  }
   return true;
 }
 
