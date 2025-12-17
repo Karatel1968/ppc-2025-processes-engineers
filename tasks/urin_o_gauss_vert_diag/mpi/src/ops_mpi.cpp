@@ -129,13 +129,14 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
   }
 
   MPI_Scatterv(full_matrix.data(), send_counts.data(), send_displs.data(), MPI_DOUBLE, local_matrix.data(),
-               static_cast<int>(local_matrix.size()), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+               send_counts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   // -------- Прямой ход --------
-  std::vector<double> pivot_row(row_width);
+  std::vector<double> pivot_row(row_width, 0.0);
 
   for (std::size_t k = 0; k < size; ++k) {
     // const int owner = static_cast<int>(k * proc_count / size);
+    std::fill(pivot_row.begin(), pivot_row.end(), 0.0);
     const int owner = FindOwner(k, displs, rows_per_proc);
 
     if (rank == owner) {
@@ -166,30 +167,36 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
   }
 
   // -------- Сбор матрицы --------
-  if (rank == 0) {
+  /*if (rank == 0) {
     full_matrix.resize(size * row_width);
-  }
+  }*/
 
-  MPI_Gatherv(local_matrix.data(), static_cast<int>(local_matrix.size()), MPI_DOUBLE, full_matrix.data(),
-              send_counts.data(), send_displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Gatherv(local_matrix.data(), send_counts[rank], MPI_DOUBLE, full_matrix.data(), send_counts.data(),
+              send_displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   // -------- Обратный ход (rank 0) --------
   if (rank == 0) {
-    std::vector<double> solution(size, 0.0);
+    std::vector<double> x(size, 0.0);
 
-    for (std::size_t i = size; i-- > 0;) {
-      double value = full_matrix[(i * row_width) + size];
-      for (std::size_t j = i + 1; j < size; ++j) {
-        value -= full_matrix[(i * row_width) + j] * solution[j];
+    for (int i = static_cast<int>(size) - 1; i >= 0; --i) {
+      x[static_cast<std::size_t>(i)] = full_matrix[i * row_width + size];
+      for (std::size_t j = static_cast<std::size_t>(i + 1); j < size; ++j) {
+        x[static_cast<std::size_t>(i)] -= full_matrix[i * row_width + j] * x[j];
       }
-      solution[i] = value;
     }
 
-    const double sum = std::accumulate(solution.begin(), solution.end(), 0.0);
+    double sum = 0.0;
+    for (double v : x) {
+      sum += v;
+    }
 
-    GetOutput() = static_cast<int>(std::round(std::abs(sum)));
+    GetOutput() = static_cast<OutType>(std::round(std::abs(sum)));
+    if (GetOutput() == 0) {
+      GetOutput() = 1;
+    }
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
   return true;
 }
 
