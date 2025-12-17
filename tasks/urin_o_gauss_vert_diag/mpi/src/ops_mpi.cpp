@@ -169,11 +169,11 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
   }
 
   // -------- Сбор матрицы --------
-  /*if (rank == 0) {
+  if (rank == 0) {
     full_matrix.resize(size * row_width);
-  }*/
+  }
 
-  MPI_Gatherv(local_matrix.data(), send_counts[rank], MPI_DOUBLE, full_matrix.data(), send_counts.data(),
+  MPI_Gatherv(local_matrix.data(), send_counts[rank], MPI_DOUBLE, rank == 0 ? full_matrix.data() : nullptr, send_counts.data(),
               send_displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   // -------- Обратный ход (rank 0) --------
