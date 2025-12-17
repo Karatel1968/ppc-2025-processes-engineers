@@ -198,7 +198,6 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
     }
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
   return true;
 }
 
