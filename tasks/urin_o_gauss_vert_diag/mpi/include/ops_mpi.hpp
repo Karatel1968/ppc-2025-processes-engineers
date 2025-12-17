@@ -28,6 +28,13 @@ class UrinOGaussVertDiagMPI : public BaseTask {
                                           std::vector<int> &displacements);
 
   static int FindOwner(std::size_t global_row, const std::vector<int> &displs, const std::vector<int> &rows_per_proc);
+
+  static void EliminateLocalRows(std::vector<double> &local, const std::vector<double> &pivot_row,
+                                 std::size_t local_rows, std::size_t width, std::size_t k, int rank,
+                                 const std::vector<int> &displs);
+
+  static void NormalizePivotRow(std::vector<double> &local, std::vector<double> &pivot_row, std::size_t local_k,
+                                std::size_t k, std::size_t width);
 };
 
 }  // namespace urin_o_gauss_vert_diag

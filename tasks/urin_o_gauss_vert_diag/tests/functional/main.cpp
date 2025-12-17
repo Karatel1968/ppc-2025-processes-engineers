@@ -1,16 +1,8 @@
 #include <gtest/gtest.h>
 #include <stb/stb_image.h>
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <numeric>
-#include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
-#include <vector>
 
 // #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"

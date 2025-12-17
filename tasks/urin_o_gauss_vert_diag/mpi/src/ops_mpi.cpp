@@ -2,8 +2,8 @@
 
 #include <mpi.h>
 
-#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <numeric>
 #include <random>
 #include <vector>
@@ -31,7 +31,8 @@ bool UrinOGaussVertDiagMPI::PreProcessingImpl() {
 void UrinOGaussVertDiagMPI::GenerateRandomMatrix(std::size_t size, std::vector<double> &augmented) {
   augmented.assign(size * (size + 1), 0.0);
 
-  std::mt19937 gen(123);
+  // std::mt19937 gen(123);
+  static std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<double> off_diag(0.1, 1.0);
   std::uniform_real_distribution<double> diag_add(1.0, 5.0);
   std::uniform_real_distribution<double> rhs_dist(1.0, 10.0);
@@ -53,13 +54,36 @@ void UrinOGaussVertDiagMPI::GenerateRandomMatrix(std::size_t size, std::vector<d
 int UrinOGaussVertDiagMPI::FindOwner(std::size_t global_row, const std::vector<int> &displs,
                                      const std::vector<int> &rows_per_proc) {
   for (std::size_t i = 0; i < displs.size(); ++i) {
-    const std::size_t begin = static_cast<std::size_t>(displs[i]);
+    // const std::size_t begin = static_cast<std::size_t>(displs[i]);
+    const auto begin = static_cast<std::size_t>(displs[i]);
     const std::size_t end = begin + static_cast<std::size_t>(rows_per_proc[i]);
     if (global_row >= begin && global_row < end) {
       return static_cast<int>(i);
     }
   }
   return 0;
+}
+
+void UrinOGaussVertDiagMPI::EliminateLocalRows(std::vector<double> &local, const std::vector<double> &pivot_row,
+                                               std::size_t local_rows, std::size_t width, std::size_t k, int rank,
+                                               const std::vector<int> &displs) {
+  for (std::size_t row = 0; row < local_rows; ++row) {
+    const auto global_row = static_cast<std::size_t>(displs[rank]) + row;
+    if (global_row > k) {
+      const double factor = local[(row * width) + k];
+      for (std::size_t col = k; col < width; ++col) {
+        local[(row * width) + col] -= factor * pivot_row[col];
+      }
+    }
+  }
+}
+
+void UrinOGaussVertDiagMPI::NormalizePivotRow(std::vector<double> &local, std::vector<double> &pivot_row,
+                                              std::size_t local_k, std::size_t k, std::size_t width) {
+  const double pivot = local[(local_k * width) + k];
+  for (std::size_t col = k; col < width; ++col) {
+    pivot_row[col] = local[(local_k * width) + col] / pivot;
+  }
 }
 
 bool UrinOGaussVertDiagMPI::RunImpl() {
@@ -85,7 +109,9 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 
   std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
 
-  const std::size_t local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
+  // const std::size_t local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
+
+  const auto local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
 
   std::vector<double> local_matrix(local_rows * row_width);
   std::vector<double> full_matrix;
@@ -114,17 +140,19 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 
     if (rank == owner) {
       const std::size_t local_k = k - static_cast<std::size_t>(displs[rank]);
-
-      double pivot = local_matrix[(local_k * row_width) + k];
+      NormalizePivotRow(local_matrix, pivot_row, local_k, k, row_width);
+      /*double pivot = local_matrix[(local_k * row_width) + k];
 
       for (std::size_t col = k; col < row_width; ++col) {
         pivot_row[col] = local_matrix[(local_k * row_width) + col] / pivot;
-      }
+      }*/
     }
 
     MPI_Bcast(pivot_row.data(), static_cast<int>(row_width), MPI_DOUBLE, owner, MPI_COMM_WORLD);
 
-    for (std::size_t row = 0; row < local_rows; ++row) {
+    EliminateLocalRows(local_matrix, pivot_row, local_rows, row_width, k, rank, displs);
+
+    /*for (std::size_t row = 0; row < local_rows; ++row) {
       const std::size_t global_row = static_cast<std::size_t>(displs[rank]) + row;
 
       if (global_row > k) {
@@ -134,7 +162,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
           local_matrix[(row * row_width) + col] -= factor * pivot_row[col];
         }
       }
-    }
+    }*/
   }
 
   // -------- Сбор матрицы --------

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
-#include "util/include/util.hpp"
+// #include "util/include/util.hpp"
 
 namespace urin_o_gauss_vert_diag {
 
