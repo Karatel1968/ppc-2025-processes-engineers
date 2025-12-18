@@ -1,7 +1,6 @@
 #include "urin_o_max_val_in_col_of_mat/seq/include/ops_seq.hpp"
 
 #include <algorithm>
-#include <cstddef>
 #include <vector>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
@@ -28,13 +27,14 @@ bool UrinOMaxValInColOfMatSeq::ValidationImpl() {
   }
 
   size_t cols = matrix[0].size();
-  for (const auto &row : matrix) {
+  /*for (const auto &row : matrix) {
     if (row.size() != cols) {
       return false;  // Не прямоугольная матрица
     }
   }
 
-  return true;
+  return true;*/
+  return std::all_of(matrix.begin(), matrix.end(), [cols](const auto &row) { return row.size() == cols; });
   // return std::ranges::all_of(matrix, [cols](const auto &row) { return row.size() == cols; });
 }
 

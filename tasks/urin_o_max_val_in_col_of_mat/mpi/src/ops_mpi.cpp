@@ -3,7 +3,6 @@
 #include <mpi.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -40,7 +39,7 @@ bool UrinOMaxValInColOfMatMPI::ValidationImpl() {
       // Проверяем что матрица прямоугольная
       for (const auto &row : matrix) {
         // if (row.size() != static_cast<size_t>(cols)) {
-        if (static_cast<int>(row.size()) != cols) {
+        if (row.size() != static_cast<size_t>(cols)) {
           is_valid = false;
           break;
         }

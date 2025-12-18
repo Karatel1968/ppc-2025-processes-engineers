@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "task/include/task.hpp"
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 
