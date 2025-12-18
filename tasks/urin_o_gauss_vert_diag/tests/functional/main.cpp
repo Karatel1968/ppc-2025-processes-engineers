@@ -31,23 +31,7 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
   auto CheckTestOutputData(OutType &output_data) -> bool final {
-    // return (output_data > 0);
-    int rank = 0;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    OutType global_output = output_data;
-
-    if (is_mpi_mode_) {
-      // root собирает результат
-      OutType root_output = 0;
-      if (rank == 0) {
-        root_output = output_data;
-      }
-      MPI_Bcast(&root_output, 1, MPI_INT, 0, MPI_COMM_WORLD);
-      global_output = root_output;
-    }
-
-    return global_output > 0;
+    return (output_data > 0);
   }
 
   auto GetTestInputData() -> InType final {
@@ -55,7 +39,6 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
  private:
-  bool is_mpi_mode_ = false;
   InType input_data_{0};
   OutType expected_output_{0};
   std::string test_name_;

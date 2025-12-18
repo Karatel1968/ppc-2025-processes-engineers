@@ -176,6 +176,8 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
               send_counts.data(), send_displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   // -------- Обратный ход (rank 0) --------
+  OutType final_output = 0;
+
   if (rank == 0) {
     std::vector<double> x(size, 0.0);
 
@@ -191,11 +193,14 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
       sum += v;
     }
 
-    GetOutput() = static_cast<OutType>(std::round(std::abs(sum)));
-    if (GetOutput() == 0) {
-      GetOutput() = 1;
+    final_output = static_cast<OutType>(std::round(std::abs(sum)));
+    if (final_output == 0) {
+      final_output = 1;
     }
   }
+
+  MPI_Bcast(&final_output, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  GetOutput() = final_output;
 
   return true;
 }
