@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -28,8 +27,8 @@ class UrinOMaxValInColOfMatMPI : public BaseTask {
   // std::vector<std::vector<int>> DistributeMatrix(int rank, int rows, int cols);
   void DistributeMatrixData(int rank, int rows, int cols, std::vector<std::vector<int>> &local_matrix);
   static std::pair<int, int> CalculateColumnDistribution(int rank, int size, int cols);
-  static std::vector<int> ComputeLocalMaxima(const std::vector<std::vector<int>> &local_matrix, int rows, int start_col,
-                                             int local_cols_count);
+  static std::vector<int> ComputeLocalMaxima(const std::vector<std::vector<int>> &matrix, int rows, int start_col,
+                                             int col_count);
   static OutType GatherResults(const std::vector<int> &local_maxima, int size, int cols);
 };
 
