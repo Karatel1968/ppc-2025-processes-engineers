@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <ranges>
 #include <vector>
 // #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
 /*#include "util/include/util.hpp"*/
