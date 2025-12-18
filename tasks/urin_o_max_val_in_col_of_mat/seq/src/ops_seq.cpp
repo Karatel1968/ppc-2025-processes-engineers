@@ -1,6 +1,7 @@
 #include "urin_o_max_val_in_col_of_mat/seq/include/ops_seq.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <vector>
 
 #include "urin_o_max_val_in_col_of_mat/common/include/common.hpp"
