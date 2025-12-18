@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 #include <stb/stb_image.h>
 
 #include <string>
-#include <tuple>
 
-// #include "urin_o_gauss_vert_diag/common/include/common.hpp"
+#include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"
 #include "urin_o_gauss_vert_diag/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
-// #include "util/include/util.hpp"
+#include "util/include/util.hpp"
 
 namespace urin_o_gauss_vert_diag {
 
@@ -31,8 +31,23 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
   auto CheckTestOutputData(OutType &output_data) -> bool final {
-    // Проверяем, что результат положительный (успешное решение)
-    return (output_data > 0);
+    // return (output_data > 0);
+    int rank = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    OutType global_output = output_data;
+
+    if (is_mpi_mode_) {
+      // root собирает результат
+      OutType root_output = 0;
+      if (rank == 0) {
+        root_output = output_data;
+      }
+      MPI_Bcast(&root_output, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      global_output = root_output;
+    }
+
+    return global_output > 0;
   }
 
   auto GetTestInputData() -> InType final {
@@ -40,6 +55,7 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
  private:
+  bool is_mpi_mode_ = false;
   InType input_data_{0};
   OutType expected_output_{0};
   std::string test_name_;

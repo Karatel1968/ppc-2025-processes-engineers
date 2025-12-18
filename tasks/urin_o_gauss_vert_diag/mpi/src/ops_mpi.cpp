@@ -96,7 +96,6 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
   const auto size = static_cast<std::size_t>(GetInput());
   const std::size_t row_width = size + 1;
 
-  // -------- Распределение строк --------
   std::vector<int> rows_per_proc(proc_count, 0);
   std::vector<int> displs(proc_count, 0);
 
