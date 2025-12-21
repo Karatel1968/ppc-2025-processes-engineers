@@ -2,9 +2,10 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <numeric>
+#include <iostream>  // для std::cerr
 #include <random>
 #include <vector>
 
@@ -86,6 +87,19 @@ void UrinOGaussVertDiagMPI::NormalizePivotRow(std::vector<double> &local, std::v
   }
 }
 
+void DistributeRows(int proc_count, std::size_t size, std::vector<int> &rows_per_proc, std::vector<int> &displs) {
+  for (int i = 0; i < proc_count; ++i) {
+    rows_per_proc[i] = static_cast<int>(size / proc_count);
+    if (static_cast<std::size_t>(i) < size % proc_count) {
+      ++rows_per_proc[i];
+    }
+  }
+  // std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
+  for (int i = 1; i < proc_count; ++i) {
+    displs[i] = displs[i - 1] + rows_per_proc[i - 1];
+  }
+}
+
 bool UrinOGaussVertDiagMPI::RunImpl() {
   int rank = 0;
   int proc_count = 0;
@@ -98,18 +112,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 
   std::vector<int> rows_per_proc(proc_count, 0);
   std::vector<int> displs(proc_count, 0);
-
-  for (int i = 0; i < proc_count; ++i) {
-    rows_per_proc[i] = static_cast<int>(size / proc_count);
-    if (static_cast<std::size_t>(i) < size % proc_count) {
-      rows_per_proc[i]++;
-    }
-  }
-
-  // std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
-  for (int i = 1; i < proc_count; ++i) {
-    displs[i] = displs[i - 1] + rows_per_proc[i - 1];
-  }
+  DistributeRows(proc_count, size, rows_per_proc, displs);
   // const std::size_t local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
 
   const auto local_rows = static_cast<std::size_t>(rows_per_proc[rank]);
@@ -131,7 +134,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 
   if (local_matrix.size() != static_cast<std::size_t>(send_counts[rank])) {
     std::cerr << "Rank " << rank << ": local_matrix size = " << local_matrix.size()
-              << ", but send_counts = " << send_counts[rank] << std::endl;
+              << ", but send_counts = " << send_counts[rank] << "\n";
     return false;
   }
 
@@ -143,34 +146,18 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 
   for (std::size_t k = 0; k < size; ++k) {
     // const int owner = static_cast<int>(k * proc_count / size);
-    std::fill(pivot_row.begin(), pivot_row.end(), 0.0);
+    // std::fill(pivot_row.begin(), pivot_row.end(), 0.0);
+    std::ranges::fill(pivot_row, 0.0);
     const int owner = FindOwner(k, displs, rows_per_proc);
 
     if (rank == owner) {
       const auto local_k = k - static_cast<std::size_t>(displs[rank]);
       NormalizePivotRow(local_matrix, pivot_row, local_k, k, row_width);
-      /*double pivot = local_matrix[(local_k * row_width) + k];
-
-      for (std::size_t col = k; col < row_width; ++col) {
-        pivot_row[col] = local_matrix[(local_k * row_width) + col] / pivot;
-      }*/
     }
 
     MPI_Bcast(pivot_row.data(), static_cast<int>(row_width), MPI_DOUBLE, owner, MPI_COMM_WORLD);
 
     EliminateLocalRows(local_matrix, pivot_row, local_rows, row_width, k, rank, displs);
-
-    /*for (std::size_t row = 0; row < local_rows; ++row) {
-      const std::size_t global_row = static_cast<std::size_t>(displs[rank]) + row;
-
-      if (global_row > k) {
-        const double factor = local_matrix[(row * row_width) + k];
-
-        for (std::size_t col = k; col < row_width; ++col) {
-          local_matrix[(row * row_width) + col] -= factor * pivot_row[col];
-        }
-      }
-    }*/
   }
 
   // -------- Сбор матрицы --------
@@ -188,9 +175,9 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
     std::vector<double> x(size, 0.0);
 
     for (int i = static_cast<int>(size) - 1; i >= 0; --i) {
-      x[static_cast<std::size_t>(i)] = full_matrix[i * row_width + size];
-      for (std::size_t j = static_cast<std::size_t>(i + 1); j < size; ++j) {
-        x[static_cast<std::size_t>(i)] -= full_matrix[i * row_width + j] * x[j];
+      x[static_cast<std::size_t>(i)] = full_matrix[(i * row_width) + size];
+      for (auto j = static_cast<std::size_t>(i + 1); j < size; ++j) {
+        x[static_cast<std::size_t>(i)] -= full_matrix[(i * row_width) + j] * x[j];
       }
     }
 

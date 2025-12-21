@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <mpi.h>
 #include <stb/stb_image.h>
 
+#include <cstddef>
 #include <string>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
@@ -14,7 +14,8 @@ namespace urin_o_gauss_vert_diag {
 
 class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
-  UrinRunFuncTestsGaussVertical() : input_data_(0), expected_output_(0) {}
+  // UrinRunFuncTestsGaussVertical() : input_data_(0), expected_output_(0) {}
+  UrinRunFuncTestsGaussVertical() = default;
 
   static auto PrintTestParam(const TestType &test_param) -> std::string {
     return std::to_string(std::get<0>(test_param)) + "_" + std::get<1>(test_param);

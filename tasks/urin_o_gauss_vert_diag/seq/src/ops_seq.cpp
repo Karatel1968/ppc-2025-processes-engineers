@@ -62,7 +62,9 @@ void UrinOGaussVertDiagSEQ::GenerateRandomMatrix(std::size_t size, std::vector<s
   }
 }
 
-static bool ForwardElimination(std::vector<std::vector<double>> &augmented) {
+namespace {
+
+bool ForwardElimination(std::vector<std::vector<double>> &augmented) {
   const std::size_t size = augmented.size();
 
   for (std::size_t pivot = 0; pivot < size; ++pivot) {
@@ -101,7 +103,7 @@ static bool ForwardElimination(std::vector<std::vector<double>> &augmented) {
   return true;
 }
 
-static void BackSubstitution(const std::vector<std::vector<double>> &augmented, std::vector<double> &solution) {
+void BackSubstitution(const std::vector<std::vector<double>> &augmented, std::vector<double> &solution) {
   const std::size_t size = augmented.size();
   solution.assign(size, 0.0);
 
@@ -113,6 +115,8 @@ static void BackSubstitution(const std::vector<std::vector<double>> &augmented, 
     solution[row] = value;
   }
 }
+
+}  // namespace
 
 bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>> &matrix,
                                           const std::vector<double> &rhs, std::vector<double> &solution) {
