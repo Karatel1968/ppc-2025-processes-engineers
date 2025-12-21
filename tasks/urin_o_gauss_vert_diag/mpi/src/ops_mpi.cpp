@@ -129,6 +129,12 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
     send_displs[i] = displs[i] * static_cast<int>(row_width);
   }
 
+  if (local_matrix.size() != static_cast<std::size_t>(send_counts[rank])) {
+    std::cerr << "Rank " << rank << ": local_matrix size = " << local_matrix.size()
+              << ", but send_counts = " << send_counts[rank] << std::endl;
+    return false;
+  }
+
   MPI_Scatterv(full_matrix.data(), send_counts.data(), send_displs.data(), MPI_DOUBLE, local_matrix.data(),
                send_counts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
