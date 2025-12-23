@@ -62,9 +62,34 @@ void UrinOGaussVertDiagSEQ::GenerateRandomMatrix(std::size_t size, std::vector<s
   }
 }
 
-namespace {
+void UrinOGaussVertDiagSEQ::EliminateRows(std::size_t pivot, std::vector<std::vector<double>> &augmented) {
+  const std::size_t size = augmented.size();
 
-bool ForwardElimination(std::vector<std::vector<double>> &augmented) {
+  for (std::size_t row = pivot + 1; row < size; ++row) {
+    const double factor = augmented[row][pivot];
+    for (std::size_t col = pivot; col <= size; ++col) {
+      augmented[row][col] -= factor * augmented[pivot][col];
+    }
+  }
+}
+
+void UrinOGaussVertDiagSEQ::BackSubstitution(const std::vector<std::vector<double>> &augmented,
+                                             std::vector<double> &solution) {
+  const std::size_t size = augmented.size();
+  solution.assign(size, 0.0);
+
+  for (std::ptrdiff_t row = static_cast<std::ptrdiff_t>(size) - 1; row >= 0; --row) {
+    double value = augmented[row][size];
+    for (std::size_t col = row + 1; col < size; ++col) {
+      value -= augmented[row][col] * solution[col];
+    }
+    solution[row] = value;
+  }
+}
+
+// namespace
+
+bool UrinOGaussVertDiagSEQ::ForwardElimination(std::vector<std::vector<double>> &augmented) {
   const std::size_t size = augmented.size();
 
   for (std::size_t pivot = 0; pivot < size; ++pivot) {
@@ -92,31 +117,11 @@ bool ForwardElimination(std::vector<std::vector<double>> &augmented) {
       augmented[pivot][col] /= divisor;
     }
 
-    for (std::size_t row = pivot + 1; row < size; ++row) {
-      const double factor = augmented[row][pivot];
-      for (std::size_t col = pivot; col <= size; ++col) {
-        augmented[row][col] -= factor * augmented[pivot][col];
-      }
-    }
+    EliminateRows(pivot, augmented);
   }
 
   return true;
 }
-
-void BackSubstitution(const std::vector<std::vector<double>> &augmented, std::vector<double> &solution) {
-  const std::size_t size = augmented.size();
-  solution.assign(size, 0.0);
-
-  for (std::ptrdiff_t row = static_cast<std::ptrdiff_t>(size) - 1; row >= 0; --row) {
-    double value = augmented[row][size];
-    for (std::size_t col = row + 1; col < size; ++col) {
-      value -= augmented[row][col] * solution[col];
-    }
-    solution[row] = value;
-  }
-}
-
-}  // namespace
 
 bool UrinOGaussVertDiagSEQ::SolveGaussian(const std::vector<std::vector<double>> &matrix,
                                           const std::vector<double> &rhs, std::vector<double> &solution) {

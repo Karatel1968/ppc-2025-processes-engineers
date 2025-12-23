@@ -87,7 +87,8 @@ void UrinOGaussVertDiagMPI::NormalizePivotRow(std::vector<double> &local, std::v
   }
 }
 
-void DistributeRows(int proc_count, std::size_t size, std::vector<int> &rows_per_proc, std::vector<int> &displs) {
+void UrinOGaussVertDiagMPI::DistributeRows(int proc_count, std::size_t size, std::vector<int> &rows_per_proc,
+                                           std::vector<int> &displs) {
   for (int i = 0; i < proc_count; ++i) {
     rows_per_proc[i] = static_cast<int>(size / proc_count);
     if (static_cast<std::size_t>(i) < size % proc_count) {
@@ -97,6 +98,36 @@ void DistributeRows(int proc_count, std::size_t size, std::vector<int> &rows_per
   // std::partial_sum(rows_per_proc.begin(), rows_per_proc.end() - 1, displs.begin() + 1);
   for (int i = 1; i < proc_count; ++i) {
     displs[i] = displs[i - 1] + rows_per_proc[i - 1];
+  }
+}
+
+OutType UrinOGaussVertDiagMPI::BackSubstitutionMPI(int rank, const std::vector<double> &full_matrix, std::size_t size,
+                                                   std::size_t row_width) {
+  OutType final_output = 0;
+
+  if (rank == 0) {
+    std::vector<double> x(size, 0.0);
+
+    for (int i = static_cast<int>(size) - 1; i >= 0; --i) {
+      x[static_cast<std::size_t>(i)] = full_matrix[(i * row_width) + size];
+      for (auto j = static_cast<std::size_t>(i + 1); j < size; ++j) {
+        x[static_cast<std::size_t>(i)] -= full_matrix[(i * row_width) + j] * x[j];
+      }
+    }
+
+    double sum = 0.0;
+    for (double v : x) {
+      sum += v;
+    }
+
+    final_output = static_cast<OutType>(std::round(std::abs(sum)));
+    if (final_output == 0) {
+      final_output = 1;
+    }
+
+    return final_output;
+  } else {
+    return final_output;
   }
 }
 
@@ -169,28 +200,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
               send_counts.data(), send_displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   // -------- Обратный ход (rank 0) --------
-  OutType final_output = 0;
-
-  if (rank == 0) {
-    std::vector<double> x(size, 0.0);
-
-    for (int i = static_cast<int>(size) - 1; i >= 0; --i) {
-      x[static_cast<std::size_t>(i)] = full_matrix[(i * row_width) + size];
-      for (auto j = static_cast<std::size_t>(i + 1); j < size; ++j) {
-        x[static_cast<std::size_t>(i)] -= full_matrix[(i * row_width) + j] * x[j];
-      }
-    }
-
-    double sum = 0.0;
-    for (double v : x) {
-      sum += v;
-    }
-
-    final_output = static_cast<OutType>(std::round(std::abs(sum)));
-    if (final_output == 0) {
-      final_output = 1;
-    }
-  }
+  OutType final_output = BackSubstitutionMPI(rank, full_matrix, size, row_width);
 
   MPI_Bcast(&final_output, 1, MPI_INT, 0, MPI_COMM_WORLD);
   GetOutput() = final_output;

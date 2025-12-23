@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 #include <stb/stb_image.h>
 
+#include <array>
 #include <cstddef>
 #include <string>
+#include <tuple>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"

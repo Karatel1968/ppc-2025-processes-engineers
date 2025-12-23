@@ -24,8 +24,8 @@ class UrinOGaussVertDiagMPI : public BaseTask {
   // Вспомогательные методы
   static void GenerateRandomMatrix(std::size_t size, std::vector<double> &augmented);
 
-  static void CalculateColumnDistribution(std::size_t columns, int process_count, std::vector<int> &counts,
-                                          std::vector<int> &displacements);
+  // static void CalculateColumnDistribution(std::size_t columns, int process_count, std::vector<int> &counts,
+  // std::vector<int> &displacements);
 
   static int FindOwner(std::size_t global_row, const std::vector<int> &displs, const std::vector<int> &rows_per_proc);
 
@@ -35,6 +35,12 @@ class UrinOGaussVertDiagMPI : public BaseTask {
 
   static void NormalizePivotRow(std::vector<double> &local, std::vector<double> &pivot_row, std::size_t local_k,
                                 std::size_t k, std::size_t width);
+
+  static void DistributeRows(int proc_count, std::size_t size, std::vector<int> &rows_per_proc,
+                             std::vector<int> &displs);
+
+  static OutType BackSubstitutionMPI(int rank, const std::vector<double> &full_matrix, std::size_t size,
+                                     std::size_t row_width);
 };
 
 }  // namespace urin_o_gauss_vert_diag

@@ -20,7 +20,7 @@ namespace urin_o_gauss_vert_diag {
 
 class UrinRunPerfTestGaussVertical : public ppc::util::BaseRunPerfTests<InType, OutType> {
  public:
-  UrinRunPerfTestGaussVertical() : input_data_(0) {}
+  UrinRunPerfTestGaussVertical() = default;
 
  protected:
   void SetUp() override {
