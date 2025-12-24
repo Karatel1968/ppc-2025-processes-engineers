@@ -203,7 +203,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
     final_output = BackSubstitutionMPI(full_matrix, size, row_width);
   }
 
-  MPI_Bcast(&final_output, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&final_output, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   std::cout << "Rank " << rank << ": GetOutput() = " << final_output << std::endl;
 
