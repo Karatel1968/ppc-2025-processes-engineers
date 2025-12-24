@@ -107,50 +107,6 @@ void UrinOGaussVertDiagMPI::DistributeRows(int proc_count, std::size_t size, std
 
 OutType UrinOGaussVertDiagMPI::BackSubstitutionMPI(const std::vector<double> &full_matrix, std::size_t size,
                                                    std::size_t width) {
-  /*OutType final_output = 0;
-
-  if (rank == 0) {
-    std::vector<double> x(size, 0.0);
-
-    for (auto i = static_cast<int>(size) - 1; i >= 0; --i) {
-      x[static_cast<std::size_t>(i)] = full_matrix[(i * row_width) + size];
-      for (auto j = static_cast<std::size_t>(i + 1); j < size; ++j) {
-        x[static_cast<std::size_t>(i)] -= full_matrix[(i * row_width) + j] * x[j];
-      }
-    }
-
-    double sum = 0.0;
-    for (double v : x) {
-      sum += v;
-    }
-
-    /*final_output = static_cast<OutType>(std::round(std::abs(sum)));
-    if (final_output == 0) {
-      final_output = 1;
-    }
-
-    std::cout << "Rank 0: sum = " << sum
-                  << ", final_output = " << final_output << std::endl;
-    double abs_sum = std::abs(sum);
-
-        // Если слишком большое, нормировать
-        if (abs_sum > 1e9) {
-            abs_sum = 1e9;
-        }
-
-        final_output = static_cast<OutType>(std::round(abs_sum));
-
-        // Гарантировать положительное значение
-        if (final_output <= 0) {
-            final_output = 1;
-        }
-
-    return final_output;
-  } else {
-    return final_output;
-  }*/
-  // if (rank != 0) return 0;
-
   std::vector<double> x(size, 0.0);
 
   for (int i = static_cast<int>(size) - 1; i >= 0; --i) {
