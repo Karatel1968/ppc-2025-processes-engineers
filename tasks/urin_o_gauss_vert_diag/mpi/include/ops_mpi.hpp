@@ -39,8 +39,7 @@ class UrinOGaussVertDiagMPI : public BaseTask {
   static void DistributeRows(int proc_count, std::size_t size, std::vector<int> &rows_per_proc,
                              std::vector<int> &displs);
 
-  static OutType BackSubstitutionMPI(int rank, const std::vector<double> &full_matrix, std::size_t size,
-                                     std::size_t row_width);
+  static OutType BackSubstitutionMPI(const std::vector<double> &full_matrix, std::size_t size, std::size_t row_width);
 };
 
 }  // namespace urin_o_gauss_vert_diag

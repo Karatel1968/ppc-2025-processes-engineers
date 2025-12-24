@@ -28,7 +28,16 @@ class UrinRunPerfTestGaussVertical : public ppc::util::BaseRunPerfTests<InType, 
   }
 
   bool CheckTestOutputData(OutType &output_data) override {
-    return output_data > 0;
+    std::cout << "CheckTestOutputData: output_data = " << output_data << std::endl;
+
+    if (output_data <= 0) {
+      std::cout << "CheckTestOutputData: FAILED - output_data <= 0" << std::endl;
+      return false;
+    }
+
+    std::cout << "CheckTestOutputData: PASSED" << std::endl;
+    // return output_data > 0;
+    return std::abs(output_data) > 1e-6;
   }
 
   InType GetTestInputData() override {
