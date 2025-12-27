@@ -65,7 +65,13 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
 namespace {
 
 TEST_P(UrinRunFuncTestsGaussVertical, GaussVerticalDiagonalTest) {
-  ExecuteTest(GetParam());
+  // ExecuteTest(GetParam());
+  try {
+    ExecuteTest(GetParam());
+  } catch (const std::exception &e) {
+    std::cerr << "Exception in test: " << e.what() << std::endl;
+    throw;
+  }
 }
 
 // Тестовые параметры: {размер_матрицы, название_теста}

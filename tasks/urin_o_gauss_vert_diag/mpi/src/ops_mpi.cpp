@@ -32,8 +32,8 @@ bool UrinOGaussVertDiagMPI::PreProcessingImpl() {
 void UrinOGaussVertDiagMPI::GenerateRandomMatrix(std::size_t size, std::vector<double> &augmented) {
   augmented.assign(size * (size + 1), 0.0);
 
-  // std::mt19937 gen(123);
-  static std::mt19937 gen(std::random_device{}());
+  std::mt19937 gen(42);
+  // static std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<double> off_diag(0.01, 0.1);
   std::uniform_real_distribution<double> diag_add(1.0, 2.0);  // Было (1.0, 5.0)
   std::uniform_real_distribution<double> rhs_dist(0.1, 1.0);
