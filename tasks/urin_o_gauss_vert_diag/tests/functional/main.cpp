@@ -26,12 +26,6 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
 
  protected:
   void SetUp() override {
-    int mpi_initialized = 0;
-    MPI_Initialized(&mpi_initialized);
-    if (!mpi_initialized) {
-      MPI_Init(nullptr, nullptr);
-    }
-
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
     int matrix_size = std::get<0>(params);
     test_name_ = std::get<1>(params);
