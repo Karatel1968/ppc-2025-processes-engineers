@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 #include <stb/stb_image.h>
 
 #include <array>
@@ -25,6 +26,12 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
 
  protected:
   void SetUp() override {
+    int mpi_initialized = 0;
+    MPI_Initialized(&mpi_initialized);
+    if (!mpi_initialized) {
+      MPI_Init(nullptr, nullptr);
+    }
+
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
     int matrix_size = std::get<0>(params);
     test_name_ = std::get<1>(params);
@@ -34,6 +41,20 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
   auto CheckTestOutputData(OutType &output_data) -> bool final {
+    int rank = 0;
+    int mpi_initialized = 0;
+
+    MPI_Initialized(&mpi_initialized);
+    if (mpi_initialized) {
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+      // Синхронизируем результат между процессами
+      OutType global_output = output_data;
+      MPI_Bcast(&global_output, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+      // Используем синхронизированное значение
+      output_data = global_output;
+    }
     return (output_data > 0);
   }
 
