@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
-#include <stb/stb_image.h>
+// #include <stb/stb_image.h>
 
 #include <array>
 #include <cstddef>
+#include <exception>
+#include <iostream>
 #include <string>
 #include <tuple>
 
@@ -35,11 +37,11 @@ class UrinRunFuncTestsGaussVertical : public ppc::util::BaseRunFuncTests<InType,
   }
 
   auto CheckTestOutputData(OutType &output_data) -> bool final {
-    int rank = 0;
     int mpi_initialized = 0;
 
     MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized) {
+    if (mpi_initialized != 0) {
+      int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
       // Синхронизируем результат между процессами
@@ -69,7 +71,7 @@ TEST_P(UrinRunFuncTestsGaussVertical, GaussVerticalDiagonalTest) {
   try {
     ExecuteTest(GetParam());
   } catch (const std::exception &e) {
-    std::cerr << "Exception in test: " << e.what() << std::endl;
+    std::cerr << "Exception in test: " << e.what() << "\n";
     throw;
   }
 }

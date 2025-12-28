@@ -10,6 +10,8 @@
 #include <tuple>
 #include <utility>
 #include <vector>*/
+#include <cmath>
+#include <iostream>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"
@@ -28,15 +30,15 @@ class UrinRunPerfTestGaussVertical : public ppc::util::BaseRunPerfTests<InType, 
   }
 
   bool CheckTestOutputData(OutType &output_data) override {
-    std::cout << "CheckTestOutputData: output_data = " << output_data << std::endl;
+    // std::cout << "CheckTestOutputData: output_data = " << output_data << std::endl;
 
     if (output_data <= 0) {
-      std::cout << "CheckTestOutputData: FAILED - output_data <= 0" << std::endl;
+      // std::cout << "CheckTestOutputData: FAILED - output_data <= 0" << std::endl;
       return false;
     }
 
-    std::cout << "CheckTestOutputData: PASSED" << std::endl;
-    // return output_data > 0;
+    // std::cout << "CheckTestOutputData: PASSED" << std::endl;
+    // return true;
     return std::abs(output_data) > 1e-6;
   }
 

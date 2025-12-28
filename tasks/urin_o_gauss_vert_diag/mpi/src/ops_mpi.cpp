@@ -86,8 +86,8 @@ void UrinOGaussVertDiagMPI::NormalizePivotRow(std::vector<double> &local, std::v
     pivot_row[col] = local[(local_k * width) + col] / pivot;
   }*/
   for (std::size_t col = k; col < width; ++col) {
-    local[local_k * width + col] /= pivot;
-    pivot_row[col] = local[local_k * width + col];
+    local[(local_k * width) + col] /= pivot;
+    pivot_row[col] = local[(local_k * width) + col];
   }
 }
 
@@ -113,11 +113,11 @@ OutType UrinOGaussVertDiagMPI::BackSubstitutionMPI(const std::vector<double> &fu
     double s = full_matrix[i * width + size];
 
     for (std::size_t j = i + 1; j < size; ++j) {
-      s -= full_matrix[i * width + j] * x[j];
+      s -= full_matrix[(i * width) + j] * x[j];
     }
 
     // диагональ = 1, но оставим защиту
-    x[i] = s / full_matrix[i * width + i];
+    x[i] = s / full_matrix[(i * width) + i];
   }
 
   double norm = 0.0;
@@ -205,7 +205,7 @@ bool UrinOGaussVertDiagMPI::RunImpl() {
 
   MPI_Bcast(&final_output, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-  std::cout << "Rank " << rank << ": GetOutput() = " << final_output << std::endl;
+  std::cout << "Rank " << rank << ": GetOutput() = " << final_output << "\n";
 
   GetOutput() = final_output;
 
