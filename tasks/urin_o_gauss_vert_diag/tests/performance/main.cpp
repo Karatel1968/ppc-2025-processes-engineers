@@ -11,7 +11,6 @@
 #include <utility>
 #include <vector>*/
 #include <cmath>
-#include <iostream>
 
 #include "urin_o_gauss_vert_diag/common/include/common.hpp"
 #include "urin_o_gauss_vert_diag/mpi/include/ops_mpi.hpp"
