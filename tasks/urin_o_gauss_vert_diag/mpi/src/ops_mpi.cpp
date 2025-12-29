@@ -33,8 +33,8 @@ void UrinOGaussVertDiagMPI::GenerateRandomMatrix(std::size_t size, std::vector<d
   augmented.assign(size * (size + 1), 0.0);
 
   // std::mt19937 gen(42);
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  std::seed_seq seed{42, 12345};
+  std::mt19937 gen(seed);
   // static std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<double> off_diag(0.01, 0.1);
   std::uniform_real_distribution<double> diag_add(1.0, 2.0);  // Было (1.0, 5.0)
