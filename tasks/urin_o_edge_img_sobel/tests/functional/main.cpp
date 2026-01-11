@@ -63,7 +63,10 @@ std::get<1>(param);
 
   bool CheckTestOutputData(OutType &output_data) final {
     // Проверяем, что размер совпадает
-    if (output_data.size() != std::get<1>(input_data_) * std::get<2>(input_data_)) {
+    const std::size_t expected_size =
+        static_cast<std::size_t>(std::get<1>(input_data_)) * static_cast<std::size_t>(std::get<2>(input_data_));
+
+    if (output_data.size() != expected_size) {
       return false;
     }
     // Можно добавить более сложную проверку (напр. максимальные значения, средний порог и т.п.)
