@@ -35,7 +35,6 @@ bool UrinOEdgeImgSobelSEQ::ValidationImpl() {
 }
 
 bool UrinOEdgeImgSobelSEQ::PreProcessingImpl() {
-  // Ничего особенного — можно добавить если надо
   return true;
 }
 
@@ -75,7 +74,6 @@ bool UrinOEdgeImgSobelSEQ::RunImpl() {
       int gx = GradientX(x, y);
       int gy = GradientY(x, y);
       int mag = static_cast<int>(std::sqrt(gx * gx + gy * gy));
-      // Ограничим максимальное значение 255 (8 бит)
       GetOutput()[static_cast<size_t>(y) * width_ + x] = std::min(mag, 255);
     }
   }
@@ -83,7 +81,6 @@ bool UrinOEdgeImgSobelSEQ::RunImpl() {
 }
 
 bool UrinOEdgeImgSobelSEQ::PostProcessingImpl() {
-  // Ничего не делаем, но можно добавить фильтрацию по порогу, нормализацию и пр.
   return true;
 }
 

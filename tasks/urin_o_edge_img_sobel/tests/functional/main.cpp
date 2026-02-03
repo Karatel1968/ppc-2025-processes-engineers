@@ -62,14 +62,13 @@ std::get<1>(param);
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    // Проверяем, что размер совпадает
     const std::size_t expected_size =
         static_cast<std::size_t>(std::get<1>(input_data_)) * static_cast<std::size_t>(std::get<2>(input_data_));
 
     if (output_data.size() != expected_size) {
       return false;
     }
-    // Можно добавить более сложную проверку (напр. максимальные значения, средний порог и т.п.)
+
     return true;
   }
 
@@ -87,7 +86,6 @@ TEST_P(UrinOEdgeImgSobelFuncTests, SobelFromPic) {
   ExecuteTest(GetParam());
 }
 
-// Можно добавить несколько тестов с разными параметрами (например, порогами)
 const std::array<TestType, 7> kTestParam = {
     std::make_tuple(3, "Test_3"),   std::make_tuple(5, "Test_5"), std::make_tuple(7, "Test_7"),
     std::make_tuple(8, "Test_8"),   std::make_tuple(9, "Test_9"), std::make_tuple(10, "Test_10"),
