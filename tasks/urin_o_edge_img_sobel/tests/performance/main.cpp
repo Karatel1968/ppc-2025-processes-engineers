@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <tuple>
+#include <vector>
+
 #include "urin_o_edge_img_sobel/common/include/common.hpp"
 #include "urin_o_edge_img_sobel/mpi/include/ops_mpi.hpp"
 #include "urin_o_edge_img_sobel/seq/include/ops_seq.hpp"
@@ -12,7 +15,11 @@ class UrinOEdgeImgSobelPerfTest : public ppc::util::BaseRunPerfTests<InType, Out
 
   void SetUp() override {
     const int size = 256;
-    std::vector<int> pixels(size * size, 128);  // Константное изображение (средний серый)
+    // std::vector<int> pixels(size * size, 128);  // Константное изображение (средний серый)
+    const std::vector<int>::size_type total_pixels =
+        static_cast<std::vector<int>::size_type>(size) * static_cast<std::vector<int>::size_type>(size);
+
+    std::vector<int> pixels(total_pixels, 128);
     input_data_ = std::make_tuple(pixels, size, size);
   }
 

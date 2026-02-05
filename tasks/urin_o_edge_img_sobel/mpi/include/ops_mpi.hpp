@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "task/include/task.hpp"
 #include "urin_o_edge_img_sobel/common/include/common.hpp"
 

@@ -2,18 +2,19 @@
 
 #include <mpi.h>
 
-#include <numeric>
+#include <algorithm>
+#include <array>
+#include <cstddef>
 #include <vector>
 
 #include "urin_o_edge_img_sobel/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace urin_o_edge_img_sobel {
 
 // Собельные ядра
-const int kSobelX[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
+static const std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
 
-const int kSobelY[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
+static const std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
 UrinOEdgeImgSobelMPI::UrinOEdgeImgSobelMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
@@ -81,7 +82,7 @@ void UrinOEdgeImgSobelMPI::RowDistributionComputing(int world_rank, int world_si
 void UrinOEdgeImgSobelMPI::SendParameters(int world_rank, int world_size, int base_rows, int remainder,
                                           std::vector<int> &real_rows_per_proc, std::vector<int> &send_counts,
                                           std::vector<int> &send_displs) const {
-  if (world_rank == 0) {
+  /*if (world_rank == 0) {
     int current_row = 0;
     for (int dest = 0; dest < world_size; ++dest) {
       int dest_real_rows = base_rows + (dest < remainder ? 1 : 0);
@@ -107,6 +108,32 @@ void UrinOEdgeImgSobelMPI::SendParameters(int world_rank, int world_size, int ba
 
       current_row += dest_real_rows;
     }
+  }*/
+  if (world_rank != 0) {
+    return;
+  }
+
+  int current_row = 0;
+  for (int dest = 0; dest < world_size; ++dest) {
+    const bool dest_has_extra = dest < remainder;
+    const int dest_real_rows = base_rows + (dest_has_extra ? 1 : 0);
+    real_rows_per_proc[dest] = dest_real_rows;
+
+    const bool needs_top_halo = dest > 0;
+    const bool needs_bottom_halo = dest < (world_size - 1);
+
+    int start_row_with_halo = current_row - (needs_top_halo ? 1 : 0);
+    start_row_with_halo = std::max(start_row_with_halo, 0);
+
+    int end_row_with_halo = current_row + dest_real_rows + (needs_bottom_halo ? 1 : 0) - 1;
+    end_row_with_halo = std::min(end_row_with_halo, height_ - 1);
+
+    const int actual_rows = end_row_with_halo - start_row_with_halo + 1;
+
+    send_counts[dest] = actual_rows * width_;
+    send_displs[dest] = start_row_with_halo * width_;
+
+    current_row += dest_real_rows;
   }
 }
 
@@ -150,8 +177,9 @@ int UrinOEdgeImgSobelMPI::GradientX(int x, int y) {
       int ny = y + ky;
 
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < local_height_with_halo_) {
-        int pixel = local_pixels_[static_cast<size_t>(ny) * width_ + nx];
-        sum += pixel * kSobelX[ky + 1][kx + 1];
+        int pixel = local_pixels_[(static_cast<size_t>(ny) * width_) + nx];
+        const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        sum += pixel * kernel_value;
       }
     }
   }
@@ -168,8 +196,9 @@ int UrinOEdgeImgSobelMPI::GradientY(int x, int y) {
       int ny = y + ky;
 
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < local_height_with_halo_) {
-        int pixel = local_pixels_[static_cast<size_t>(ny) * width_ + nx];
-        sum += pixel * kSobelY[ky + 1][kx + 1];
+        int pixel = local_pixels_[(static_cast<size_t>(ny) * width_) + nx];
+        const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        sum += pixel * kernel_value;
       }
     }
   }
@@ -188,11 +217,11 @@ std::vector<int> UrinOEdgeImgSobelMPI::LocalGradientsComputing() {
     for (int local_y = 0; local_y < local_height_; ++local_y) {
       int y = local_y + ((world_rank > 0) ? 1 : 0);
 
-      for (int x = 0; x < width_; ++x) {
-        int gx = GradientX(x, y);
-        int gy = GradientY(x, y);
-        int mag = static_cast<int>(std::sqrt(gx * gx + gy * gy));
-        local_result[static_cast<size_t>(local_y) * width_ + x] = std::min(mag, 255);
+      for (int xx = 0; xx < width_; ++xx) {
+        int gx = GradientX(xx, y);
+        int gy = GradientY(xx, y);
+        int mag = static_cast<int>(std::sqrt((gx * gx) + (gy * gy)));
+        local_result[(static_cast<size_t>(local_y) * width_) + xx] = std::min(mag, 255);
       }
     }
   }

@@ -4,14 +4,14 @@
 #include <vector>
 
 #include "urin_o_edge_img_sobel/common/include/common.hpp"
-#include "util/include/util.hpp"
+// #include "util/include/util.hpp"
 
 namespace urin_o_edge_img_sobel {
 
 // Собельные ядра
-const int kSobelX[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
+static const std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
 
-const int kSobelY[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
+static const std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
 UrinOEdgeImgSobelSEQ::UrinOEdgeImgSobelSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
@@ -45,8 +45,9 @@ int UrinOEdgeImgSobelSEQ::GradientX(int x, int y) {
       int nx = x + kx;
       int ny = y + ky;
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < height_) {
-        int pixel = input_pixels_[static_cast<size_t>(ny) * width_ + nx];
-        sum += pixel * kSobelX[ky + 1][kx + 1];
+        int pixel = input_pixels_[(static_cast<size_t>(ny) * width_) + nx];
+        const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        sum += pixel * kernel_value;
       }
     }
   }
@@ -60,8 +61,9 @@ int UrinOEdgeImgSobelSEQ::GradientY(int x, int y) {
       int nx = x + kx;
       int ny = y + ky;
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < height_) {
-        int pixel = input_pixels_[static_cast<size_t>(ny) * width_ + nx];
-        sum += pixel * kSobelY[ky + 1][kx + 1];
+        int pixel = input_pixels_[(static_cast<size_t>(ny) * width_) + nx];
+        const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        sum += pixel * kernel_value;
       }
     }
   }
@@ -73,8 +75,8 @@ bool UrinOEdgeImgSobelSEQ::RunImpl() {
     for (int x = 0; x < width_; ++x) {
       int gx = GradientX(x, y);
       int gy = GradientY(x, y);
-      int mag = static_cast<int>(std::sqrt(gx * gx + gy * gy));
-      GetOutput()[static_cast<size_t>(y) * width_ + x] = std::min(mag, 255);
+      int mag = static_cast<int>(std::sqrt((gx * gx) + (gy * gy)));
+      GetOutput()[(static_cast<size_t>(y) * width_) + x] = std::min(mag, 255);
     }
   }
   return true;

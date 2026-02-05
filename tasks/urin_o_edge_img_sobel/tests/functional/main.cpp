@@ -1,15 +1,11 @@
 #include <gtest/gtest.h>
 #include <stb/stb_image.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
-#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
 
 #include "urin_o_edge_img_sobel/common/include/common.hpp"
@@ -43,7 +39,7 @@ std::get<1>(param);
 
     std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_urin_o_edge_img_sobel, "pic.jpg");
     auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, 1);  // 1 = force grayscale
-    if (!data) {
+    if (data == nullptr) {
       throw std::runtime_error("Failed to load image: " + std::string(stbi_failure_reason()));
     }
 
@@ -52,8 +48,11 @@ std::get<1>(param);
       throw std::runtime_error("Image width != height");
     }
 
-    std::vector<int> pixels(width * height);
-    for (int i = 0; i < width * height; i++) {
+    const std::vector<int>::size_type total_pixels =
+        static_cast<std::vector<int>::size_type>(width) * static_cast<std::vector<int>::size_type>(height);
+
+    std::vector<int> pixels(total_pixels);
+    for (std::vector<int>::size_type i = 0; i < total_pixels; ++i) {
       pixels[i] = static_cast<int>(data[i]);
     }
     stbi_image_free(data);
