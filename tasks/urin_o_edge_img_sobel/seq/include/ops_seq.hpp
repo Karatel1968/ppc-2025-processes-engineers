@@ -16,10 +16,9 @@ class UrinOEdgeImgSobelSEQ : public BaseTask {
   explicit UrinOEdgeImgSobelSEQ(const InType &in);
 
  private:
+  std::vector<int> input_pixels_;
   int height_ = 0;
   int width_ = 0;
-
-  std::vector<int> input_pixels_;
 
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
