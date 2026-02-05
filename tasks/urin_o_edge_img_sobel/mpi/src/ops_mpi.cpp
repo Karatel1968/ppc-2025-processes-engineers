@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <vector>
 
@@ -12,9 +13,9 @@
 namespace urin_o_edge_img_sobel {
 
 // Собельные ядра
-static const std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
 
-static const std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
 UrinOEdgeImgSobelMPI::UrinOEdgeImgSobelMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
@@ -178,7 +179,10 @@ int UrinOEdgeImgSobelMPI::GradientX(int x, int y) {
 
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < local_height_with_halo_) {
         int pixel = local_pixels_[(static_cast<size_t>(ny) * width_) + nx];
-        const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        // const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        const int sobel_x_idx = kx + 1;
+        const int sobel_y_idx = ky + 1;
+        const int kernel_value = kSobelX[sobel_y_idx][sobel_x_idx];
         sum += pixel * kernel_value;
       }
     }
@@ -197,7 +201,10 @@ int UrinOEdgeImgSobelMPI::GradientY(int x, int y) {
 
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < local_height_with_halo_) {
         int pixel = local_pixels_[(static_cast<size_t>(ny) * width_) + nx];
-        const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        // const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        const int sobel_x_idx = kx + 1;
+        const int sobel_y_idx = ky + 1;
+        const int kernel_value = kSobelY[sobel_y_idx][sobel_x_idx];
         sum += pixel * kernel_value;
       }
     }

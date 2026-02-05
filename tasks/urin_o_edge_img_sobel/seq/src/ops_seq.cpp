@@ -1,6 +1,6 @@
 #include "urin_o_edge_img_sobel/seq/include/ops_seq.hpp"
 
-#include <numeric>
+#include <array>
 #include <vector>
 
 #include "urin_o_edge_img_sobel/common/include/common.hpp"
@@ -9,19 +9,21 @@
 namespace urin_o_edge_img_sobel {
 
 // Собельные ядра
-static const std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
 
-static const std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
-UrinOEdgeImgSobelSEQ::UrinOEdgeImgSobelSEQ(const InType &in) {
+UrinOEdgeImgSobelSEQ::UrinOEdgeImgSobelSEQ(const InType &in)
+    : input_pixels_(std::get<0>(in)), height_(std::get<1>(in)), width_(std::get<2>(in)) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
 
-  input_pixels_ = std::get<0>(GetInput());
+  /*input_pixels_ = std::get<0>(GetInput());
   height_ = std::get<1>(GetInput());
-  width_ = std::get<2>(GetInput());
+  width_ = std::get<2>(GetInput());*/
+  const std::size_t total_size = static_cast<std::size_t>(height_) * static_cast<std::size_t>(width_);
 
-  GetOutput().resize(height_ * width_, 0);
+  GetOutput().resize(total_size, 0);
 }
 
 bool UrinOEdgeImgSobelSEQ::ValidationImpl() {
@@ -46,7 +48,10 @@ int UrinOEdgeImgSobelSEQ::GradientX(int x, int y) {
       int ny = y + ky;
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < height_) {
         int pixel = input_pixels_[(static_cast<size_t>(ny) * width_) + nx];
-        const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        // const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        const int sobel_x_idx = kx + 1;
+        const int sobel_y_idx = ky + 1;
+        const int kernel_value = kSobelX[sobel_y_idx][sobel_x_idx];
         sum += pixel * kernel_value;
       }
     }
@@ -62,7 +67,10 @@ int UrinOEdgeImgSobelSEQ::GradientY(int x, int y) {
       int ny = y + ky;
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < height_) {
         int pixel = input_pixels_[(static_cast<size_t>(ny) * width_) + nx];
-        const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        // const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
+        const int sobel_x_idx = kx + 1;
+        const int sobel_y_idx = ky + 1;
+        const int kernel_value = kSobelY[sobel_y_idx][sobel_x_idx];
         sum += pixel * kernel_value;
       }
     }

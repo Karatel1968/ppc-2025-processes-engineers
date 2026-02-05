@@ -64,11 +64,12 @@ std::get<1>(param);
     const std::size_t expected_size =
         static_cast<std::size_t>(std::get<1>(input_data_)) * static_cast<std::size_t>(std::get<2>(input_data_));
 
-    if (output_data.size() != expected_size) {
+    /*if (output_data.size() != expected_size) {
       return false;
     }
 
-    return true;
+    return true;*/
+    return output_data.size() == expected_size;
   }
 
   InType GetTestInputData() final {
