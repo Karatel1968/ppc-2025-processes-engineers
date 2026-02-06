@@ -52,9 +52,9 @@ int UrinOEdgeImgSobelSEQ::GradientX(int x, int y) {
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < height_) {
         int pixel = input_pixels_[(static_cast<size_t>(ny) * width_) + nx];
         // const int kernel_value = kSobelX[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
-        const auto sobel_x_idx = static_cast<size_t>(static_cast<long long>(kx) + 1LL);
-        const auto sobel_y_idx = static_cast<size_t>(static_cast<long long>(ky) + 1LL);
-        const int kernel_value = kSobelXArray.at(sobel_y_idx).at(sobel_x_idx);
+        const int sobel_x_idx = kx + 1;
+        const int sobel_y_idx = ky + 1;
+        const int kernel_value = kSobelXArray.at(static_cast<size_t>(sobel_y_idx)).at(static_cast<size_t>(sobel_x_idx));
         sum += pixel * kernel_value;
       }
     }
@@ -71,9 +71,11 @@ int UrinOEdgeImgSobelSEQ::GradientY(int x, int y) {
       if (nx >= 0 && nx < width_ && ny >= 0 && ny < height_) {
         int pixel = input_pixels_[(static_cast<size_t>(ny) * width_) + nx];
         // const int kernel_value = kSobelY[static_cast<size_t>(ky + 1)][static_cast<size_t>(kx + 1)];
-        const auto sobel_x_idx = static_cast<size_t>(static_cast<long long>(kx) + 1LL);
-        const auto sobel_y_idx = static_cast<size_t>(static_cast<long long>(ky) + 1LL);
-        const int kernel_value = kSobelYArray.at(sobel_y_idx).at(sobel_x_idx);
+        const int sobel_x_idx = kx + 1;
+        const int sobel_y_idx = ky + 1;
+
+        // Преобразуем только при вызове .at()
+        const int kernel_value = kSobelYArray.at(static_cast<size_t>(sobel_y_idx)).at(static_cast<size_t>(sobel_x_idx));
         sum += pixel * kernel_value;
       }
     }
